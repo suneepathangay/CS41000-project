@@ -42,6 +42,31 @@ class Block:
         self.shape=shape
         self.indices=indices
 
+    def rotate(self, degrees=0):
+        """Rotates block around the pivot by 90, 180, or 270 degrees and shifts to avoid negative indices."""
+        new_indices = []
+
+        for x, y in self.indices:
+            # Apply rotation based on degrees
+            if degrees == 90:
+                x, y = (-y, x)
+            elif degrees == 180:
+                x, y = (-x, -y)
+            elif degrees == 270:
+                x, y = (y, -x)
+
+            new_indices.append((x, y))
+
+        # Find minimum row and column
+        min_x = min(x for x, y in new_indices)
+        min_y = min(y for x, y in new_indices)
+
+        # Compute shift to keep indices non-negative
+        shift_x = -min_x if min_x < 0 else 0
+        shift_y = -min_y if min_y < 0 else 0
+
+        self.indices = [(x + shift_x, y + shift_y) for x, y in new_indices]
+
     def visualize(self, grid_size=(5, 5)):
         # Create an empty grid filled with dots
         grid = [['.' for _ in range(grid_size[1])] for _ in range(grid_size[0])]
@@ -144,6 +169,7 @@ class GameModel:
         pass
 
     def initialize_shapes(self):
+        rotations = [0, 90, 180, 270]
         # 3x3 square
         self.blocks.append(Block("3x3 Square", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]))
         # 5x1 line
@@ -151,10 +177,12 @@ class GameModel:
         # 1x5 line
         self.blocks.append(Block("1x5 Line", [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]))
         # 3x3 corner(s)
-        self.blocks.append(Block("3x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]))
-        self.blocks.append(Block("3x3 Corner", [(0, 0), (2, 1), (2, 2), (1, 0), (2, 0)]))
-        self.blocks.append(Block("3x3 Corner", [(2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]))
-        self.blocks.append(Block("3x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]))
+        base_indices = [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]
+
+        for degrees in rotations:
+            block = Block(f"3x3 Corner {degrees}", base_indices.copy())
+            block.rotate(degrees)
+            self.blocks.append(block)
         # 3x2 rectangle
         self.blocks.append(Block("3x2 Rectangle", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]))
         # 2x3 rectangle
@@ -165,12 +193,28 @@ class GameModel:
         self.blocks.append(Block("2x1 Rectangle", [(0, 0), (0, 1)]))
         self.blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
         # 2x2 corner(s)
-        self.blocks.append(Block("2x2 Corner", [(0, 0), (0, 1), (1, 0)]))
-        self.blocks.append(Block("2x2 Corner", [(0, 0), (1, 1), (0, 1)]))
-        self.blocks.append(Block("2x2 Corner", [(0, 1), (1, 1), (1, 0)]))
-        self.blocks.append(Block("2x2 Corner", [(0, 0), (1, 1), (1, 0)]))
+        base_indices = [(0, 0), (0, 1), (1, 0)]
+
+        for degrees in rotations:
+            block = Block(f"2x2 Corner {degrees}", base_indices.copy())
+            block.rotate(degrees)
+            self.blocks.append(block)
         # 2x3 corner
-        self.blocks.append(Block("2x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 0)]))
+        base_indices = [(0, 0), (0, 1), (0, 2), (1, 0)]
+
+        for degrees in rotations:
+            block = Block(f"2x3 Corner {degrees}", base_indices.copy())
+            block.rotate(degrees)
+            self.blocks.append(block)
+
+        # 3x2 corner
+        base_indices = [(0, 0), (0, 1), (1, 0), (2, 0)]
+
+        for degrees in rotations:
+            block = Block(f"3x2 Corner {degrees}", base_indices.copy())
+            block.rotate(degrees)
+            self.blocks.append(block)
+
         # 2x2 diagonal(s)
         self.blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
         self.blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))

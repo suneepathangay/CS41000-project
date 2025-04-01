@@ -178,7 +178,6 @@ class GameModel:
         self.blocks.append(Block("1x5 Line", [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]))
         # 3x3 corner(s)
         base_indices = [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]
-
         for degrees in rotations:
             block = Block(f"3x3 Corner {degrees}", base_indices.copy())
             block.rotate(degrees)
@@ -194,27 +193,22 @@ class GameModel:
         self.blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
         # 2x2 corner(s)
         base_indices = [(0, 0), (0, 1), (1, 0)]
-
         for degrees in rotations:
             block = Block(f"2x2 Corner {degrees}", base_indices.copy())
             block.rotate(degrees)
             self.blocks.append(block)
         # 2x3 corner
         base_indices = [(0, 0), (0, 1), (0, 2), (1, 0)]
-
         for degrees in rotations:
             block = Block(f"2x3 Corner {degrees}", base_indices.copy())
             block.rotate(degrees)
             self.blocks.append(block)
-
         # 3x2 corner
         base_indices = [(0, 0), (0, 1), (1, 0), (2, 0)]
-
         for degrees in rotations:
             block = Block(f"3x2 Corner {degrees}", base_indices.copy())
             block.rotate(degrees)
             self.blocks.append(block)
-
         # 2x2 diagonal(s)
         self.blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
         self.blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))

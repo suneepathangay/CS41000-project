@@ -40,7 +40,21 @@ class Grid:
 class Block:
     def __init__(self, shape, indices) -> None:
         self.shape=shape
-        self.indices=[]
+        self.indices=indices
+
+    def visualize(self, grid_size=(5, 5)):
+        # Create an empty grid filled with dots
+        grid = [['.' for _ in range(grid_size[1])] for _ in range(grid_size[0])]
+
+        # Mark block positions with 'X'
+        for r, c in self.indices:
+            if 0 <= r < grid_size[0] and 0 <= c < grid_size[1]:  # Ensure within bounds
+                grid[r][c] = 'X'
+
+        # Print the grid
+        for row in grid:
+            print(' '.join(row))
+        print()
 
 class GameModel:
     """
@@ -51,7 +65,21 @@ class GameModel:
     def __init__(self) -> None:
         self.grid=Grid()
         self.score=0
+        self.blocks=[]
         self.current_shapes=[]
+
+    def start_game(self):
+        # Initialize the game state
+        self.grid=Grid()
+        self.score=0
+        self.current_shapes=[]
+
+
+
+        # Generate three random shapes
+        for _ in range(3):
+            shape=self.get_random_shape()
+            self.current_shapes.append(shape)
 
     def get_grid(self):
         return self.grid
@@ -114,6 +142,48 @@ class GameModel:
         # Generate a random shape
         # Return the shape
         pass
+
+    def initialize_shapes(self):
+        # 3x3 square
+        self.blocks.append(Block("3x3 Square", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]))
+        # 5x1 line
+        self.blocks.append(Block("5x1 Line", [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]))
+        # 1x5 line
+        self.blocks.append(Block("1x5 Line", [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]))
+        # 3x3 corner(s)
+        self.blocks.append(Block("3x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]))
+        self.blocks.append(Block("3x3 Corner", [(0, 0), (2, 1), (2, 2), (1, 0), (2, 0)]))
+        self.blocks.append(Block("3x3 Corner", [(2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]))
+        self.blocks.append(Block("3x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]))
+        # 3x2 rectangle
+        self.blocks.append(Block("3x2 Rectangle", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]))
+        # 2x3 rectangle
+        self.blocks.append(Block("2x3 Rectangle", [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]))
+        # 2x2 square
+        self.blocks.append(Block("2x2 Square", [(0, 0), (0, 1), (1, 0), (1, 1)]))
+        # 2x1 rectangle
+        self.blocks.append(Block("2x1 Rectangle", [(0, 0), (0, 1)]))
+        self.blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
+        # 2x2 corner(s)
+        self.blocks.append(Block("2x2 Corner", [(0, 0), (0, 1), (1, 0)]))
+        self.blocks.append(Block("2x2 Corner", [(0, 0), (1, 1), (0, 1)]))
+        self.blocks.append(Block("2x2 Corner", [(0, 1), (1, 1), (1, 0)]))
+        self.blocks.append(Block("2x2 Corner", [(0, 0), (1, 1), (1, 0)]))
+        # 2x3 corner
+        self.blocks.append(Block("2x3 Corner", [(0, 0), (0, 1), (0, 2), (1, 0)]))
+        # 2x2 diagonal(s)
+        self.blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
+        self.blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))
+        # 3x3 diagonal(s)
+        self.blocks.append(Block("3x3 Diagonal", [(0, 0), (1, 1), (2, 2)]))
+        self.blocks.append(Block("3x3 Diagonal", [(2, 0), (1, 1), (0, 2)]))
+        # 1x1 square
+        self.blocks.append(Block("1x1 Square", [(0, 0)]))
+
+        for block in self.blocks:
+            block.visualize()
+
+GameModel().initialize_shapes()
 
     
             

@@ -37,6 +37,11 @@ class Grid:
         self.grid[row][col].set_state(tile_state)
 
 
+class Block:
+    def __init__(self, shape, indices) -> None:
+        self.shape=shape
+        self.indices=[]
+
 class GameModel:
     """
         The GameModel class represents the game model for a grid-based game.
@@ -68,7 +73,7 @@ class GameModel:
 
     def place_block(self, row, col, block):
         # Check if the block can be placed
-        block_indices = block.get_indices()
+        block_indices = block.indices
 
         # Place the block on the grid
         # Update the score
@@ -76,7 +81,7 @@ class GameModel:
 
     def can_place_block(self, row, col, block):
         # Check if the block can be placed on the grid
-        block_indices = block.get_indices()
+        block_indices = block.indices
         # TODO: implement block logic
         for i in block_indices:
             if row + i[0] < 0 or row + i[0] >= 8 or col + i[1] < 0 or col + i[1] >= 8:

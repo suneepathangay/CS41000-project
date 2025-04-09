@@ -125,13 +125,40 @@ class GameModel:
         pass
 
     def place_block(self, row, col, block):
-        # Check if the block can be placed
-        block_indices = block.indices
-
-        # Place the block on the grid
         # Update the score
-        pass
+        if not self.can_place_block(row, col, block):
+            return False  # Invalid placement
 
+            # Place the block on the grid
+        for dr, dc in block.indices:
+            self.grid.set_tile(row + dr, col + dc, True)
+
+            # Check for full rows and columns
+        full_rows = []
+        full_cols = []
+
+        for r in range(8):
+            if all(self.grid.get_tile(r, c).get_occupied() for c in range(8)):
+                full_rows.append(r)
+
+        for c in range(8):
+            if all(self.grid.get_tile(r, c).get_occupied() for r in range(8)):
+                full_cols.append(c)
+
+        # Clear full rows
+        for r in full_rows:
+            for c in range(8):
+                self.grid.set_tile(r, c, False)
+
+        # Clear full columns
+        for c in full_cols:
+            for r in range(8):
+                self.grid.set_tile(r, c, False)
+
+        # Update score
+        self.calculate_score(len(block.indices), len(full_rows), len(full_cols))
+
+        return True
     def can_place_block(self, row, col, block):
         # Check if the block can be placed on the grid
         block_indices = block.indices
@@ -158,10 +185,12 @@ class GameModel:
         # Check if the block overlaps with any occupied tiles
         pass
 
-    def calculate_score(self):
+    def calculate_score(self, tiles_placed, rows_cleared, cols_cleared):
         # Calculate the score based on the number of tiles occupied
         # and the number of blocks placed
-        pass
+        base_score = tiles_placed
+        bonus = (rows_cleared + cols_cleared) * 10  # 10 points per cleared row/col
+        self.score += base_score + bonus
 
     def get_random_shape(self):
         # Generate a random shape

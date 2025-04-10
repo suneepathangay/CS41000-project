@@ -19,15 +19,14 @@ def print_block(block:Block):
     
     display_arr=[]
     
-    display_width=[""]*width
-    
     for i in range(height):
-        display_arr.append(display_width)
+        display_arr.append(["."] * width)
 
 
     for coor in block.indices:
+        print(coor)
         display_arr[coor[0]][coor[1]]="B"
-    
+
     display_str=""
 
     

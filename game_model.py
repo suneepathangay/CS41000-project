@@ -170,3 +170,6 @@ class GameModel:
 
 # GameModel().initialize_shapes()
         
+
+# GameModel().initialize_shapes()
+        

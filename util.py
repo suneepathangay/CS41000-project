@@ -1,4 +1,3 @@
-from typing import List
 from tile import GridTile
 from block import Block
 
@@ -47,7 +46,8 @@ def print_curr_state(grid):
             if tile.get_occupied():
                 display += "X"
             else:
-                display += "O"
+                display += "-"
+            display += " "
 
         display += "\n"
 

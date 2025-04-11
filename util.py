@@ -8,125 +8,116 @@ Contains useful util methods
 """
 
 
-
-def print_block(block:Block):
-    
-    
+def print_block(block: Block):
     ##getting the frame
-    width = max([coor[1] for coor in block.indices])+1
-    height = max([coor[0] for coor in block.indices])+1
+    width = max([coor[1] for coor in block.indices]) + 1
+    height = max([coor[0] for coor in block.indices]) + 1
 
-    
-    display_arr=[]
-    
-    display_width=[""]*width
-    
+    display_arr = []
+
+    display_width = [""] * width
+
     for i in range(height):
         display_arr.append(display_width)
 
-
     for coor in block.indices:
-        display_arr[coor[0]][coor[1]]="B"
-    
-    display_str=""
+        display_arr[coor[0]][coor[1]] = "B"
 
-    
+    display_str = ""
+
     for arr in display_arr:
         string_arr = " ".join(arr)
-        display_str+=string_arr
-        display_str+='\n'
-    
+        display_str += string_arr
+        display_str += "\n"
+
     return display_str
-        
-    
-    
-    
-    
-        
-        
 
 
 """
 Prints the current state of the game board
 """
 
+
 def print_curr_state(grid):
-    
     display = ""
-    
-    
+
     for row in range(len(grid)):
         for col in range(len(grid[row])):
-            tile:GridTile = grid[row][col]
+            tile: GridTile = grid[row][col]
             if tile.get_occupied():
-                display+="X"
+                display += "X"
             else:
-                display+="O"
-        
-        display+="\n"
-    
+                display += "O"
+
+        display += "\n"
+
     return display
-    
-                
-    
 
 
 def initialize_shapes():
-        
-        rotations = [0, 90, 180, 270]
-        
-        blocks=[]
-        
-        # 3x3 square
-        blocks.append(Block("3x3 Square", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]))
-        # 5x1 line
-        blocks.append(Block("5x1 Line", [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]))
-        # 1x5 line
-        blocks.append(Block("1x5 Line", [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]))
-        # 3x3 corner(s)
-        base_indices = [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]
-        for degrees in rotations:
-            block = Block(f"3x3 Corner {degrees}", base_indices.copy())
-            block.rotate(degrees)
-            blocks.append(block)
-        # 3x2 rectangle
-        blocks.append(Block("3x2 Rectangle", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]))
-        # 2x3 rectangle
-        blocks.append(Block("2x3 Rectangle", [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]))
-        # 2x2 square
-        blocks.append(Block("2x2 Square", [(0, 0), (0, 1), (1, 0), (1, 1)]))
-        # 2x1 rectangle
-        blocks.append(Block("2x1 Rectangle", [(0, 0), (0, 1)]))
-        blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
-        
-        # 2x2 corner(s)
-        base_indices = [(0, 0), (0, 1), (1, 0)]
-        for degrees in rotations:
-            block = Block(f"2x2 Corner {degrees}", base_indices.copy())
-            block.rotate(degrees)
-            blocks.append(block)
-        
-        # 2x3 corner
-        base_indices = [(0, 0), (0, 1), (0, 2), (1, 0)]
-        for degrees in rotations:
-            block = Block(f"2x3 Corner {degrees}", base_indices.copy())
-            block.rotate(degrees)
-            blocks.append(block)
-        
-        # 3x2 corner
-        base_indices = [(0, 0), (0, 1), (1, 0), (2, 0)]
-        for degrees in rotations:
-            block = Block(f"3x2 Corner {degrees}", base_indices.copy())
-            block.rotate(degrees)
-            blocks.append(block)
-        
-        # 2x2 diagonal(s)
-        blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
-        blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))
-        # 3x3 diagonal(s)
-        blocks.append(Block("3x3 Diagonal", [(0, 0), (1, 1), (2, 2)]))
-        blocks.append(Block("3x3 Diagonal", [(2, 0), (1, 1), (0, 2)]))
-        # 1x1 square
-        blocks.append(Block("1x1 Square", [(0, 0)]))
+    rotations = [0, 90, 180, 270]
 
-        return blocks
+    blocks = []
+
+    # 3x3 square
+    blocks.append(
+        Block(
+            "3x3 Square",
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)],
+        )
+    )
+    # 5x1 line
+    blocks.append(Block("5x1 Line", [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]))
+    # 1x5 line
+    blocks.append(Block("1x5 Line", [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]))
+    # 3x3 corner(s)
+    base_indices = [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]
+    for degrees in rotations:
+        block = Block(f"3x3 Corner {degrees}", base_indices.copy())
+        block.rotate(degrees)
+        blocks.append(block)
+    # 3x2 rectangle
+    blocks.append(
+        Block("3x2 Rectangle", [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)])
+    )
+    # 2x3 rectangle
+    blocks.append(
+        Block("2x3 Rectangle", [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)])
+    )
+    # 2x2 square
+    blocks.append(Block("2x2 Square", [(0, 0), (0, 1), (1, 0), (1, 1)]))
+    # 2x1 rectangle
+    blocks.append(Block("2x1 Rectangle", [(0, 0), (0, 1)]))
+    blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
+
+    # 2x2 corner(s)
+    base_indices = [(0, 0), (0, 1), (1, 0)]
+    for degrees in rotations:
+        block = Block(f"2x2 Corner {degrees}", base_indices.copy())
+        block.rotate(degrees)
+        blocks.append(block)
+
+    # 2x3 corner
+    base_indices = [(0, 0), (0, 1), (0, 2), (1, 0)]
+    for degrees in rotations:
+        block = Block(f"2x3 Corner {degrees}", base_indices.copy())
+        block.rotate(degrees)
+        blocks.append(block)
+
+    # 3x2 corner
+    base_indices = [(0, 0), (0, 1), (1, 0), (2, 0)]
+    for degrees in rotations:
+        block = Block(f"3x2 Corner {degrees}", base_indices.copy())
+        block.rotate(degrees)
+        blocks.append(block)
+
+    # 2x2 diagonal(s)
+    blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
+    blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))
+    # 3x3 diagonal(s)
+    blocks.append(Block("3x3 Diagonal", [(0, 0), (1, 1), (2, 2)]))
+    blocks.append(Block("3x3 Diagonal", [(2, 0), (1, 1), (0, 2)]))
+    # 1x1 square
+    blocks.append(Block("1x1 Square", [(0, 0)]))
+
+    return blocks

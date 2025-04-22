@@ -1,7 +1,7 @@
 from block import Block
 from grid import Grid
 from util import initialize_shapes
-from random import randint
+from random import Random
 from tile import GridTile
 
 
@@ -12,12 +12,14 @@ from tile import GridTile
 
 
 class GameModel:
-    def __init__(self, grid_size=8) -> None:
+    def __init__(self, grid_size=8, seed=None) -> None:
         self.grid_size = grid_size
         self.grid = Grid(grid_size)
         self.score = 0
         self.blocks = initialize_shapes()
         self.current_shapes = []
+        self.seed = seed
+        self.rng = Random(seed)
 
     def start_game(self):
         # Initialize the game state
@@ -38,6 +40,13 @@ class GameModel:
 
     def get_current_shapes(self):
         return self.current_shapes
+
+    def get_seed(self):
+        return self.seed
+    
+    def set_seed(self, seed):
+        self.seed = seed
+        self.rng = Random(seed)
 
     def new_round(self):
         # Get three new shapes (where it is possible to win the game?)
@@ -169,4 +178,4 @@ class GameModel:
         # Generate a random shape
         # Return the shape
 
-        return self.blocks[randint(0, len(self.blocks) - 1)]
+        return self.blocks[self.rng.randint(0, len(self.blocks) - 1)]

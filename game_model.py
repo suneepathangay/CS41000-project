@@ -41,22 +41,22 @@ class GameModel:
         return self.current_shapes
 
     def new_round(self):
-    if self.current_shapes != []:
-        raise Exception("You need to place the blocks before starting a new round")
+        if self.current_shapes != []:
+            raise Exception("You need to place the blocks before starting a new round")
 
-    # Get three new shapes
-    for i in range(3):
-        shape = self.get_random_shape()
-        self.current_shapes.append(shape)
-        if not self.scored_this_round:
-            self.ongoing_streak_mult = 1
+        # Get three new shapes
+        for i in range(3):
+            shape = self.get_random_shape()
+            self.current_shapes.append(shape)
+            if not self.scored_this_round:
+                self.ongoing_streak_mult = 1
+        
+        # Check if the game is over and handle it appropriately
+        if self.check_game_over():
+            print("Game Over! Final Score:", self.score)
+            return True  
     
-    # Check if the game is over and handle it appropriately
-    if self.check_game_over():
-        print("Game Over! Final Score:", self.score)
-        return True  
-    
-    return False  # Game continues
+        return False  # Game continues
 
     """
     Method to place the block on the board 

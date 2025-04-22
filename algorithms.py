@@ -185,21 +185,23 @@ def main():
     best_moves = get_best_moves(game)
     
     if best_moves:
+        for shape in game.get_current_shapes():
+            shape.visualize()
+            print("\n")
+
+
         for move in best_moves:
             block_idx, block, row, col = move
-            print(f"Block index: {block_idx}, Position: ({row}, {col}).")
+            print(f"Block: {block.shape}, Position: ({row}, {col}).")
         
             # Apply the move
-            print(game.grid.visualize())
-            for shape in game.get_current_shapes():
-                print(shape.visualize())
             game.place_block(row, col, block)
+            print(game.grid.visualize())
         
         print(game.grid.visualize())
         print("\nAfter applying the best moves:")
         print(f"Score: {game.get_score()}")
         print(f"Available blocks: {len(game.get_current_shapes())}")
-        print_curr_state(game.get_grid().grid) 
     else:
         print("\nNo valid moves found!")
 

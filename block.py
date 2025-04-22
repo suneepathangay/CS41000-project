@@ -30,8 +30,9 @@ class Block:
         self.indices = [(x + shift_x, y + shift_y) for x, y in new_indices]
         self.rotation = (self.rotation + degrees) % 360
 
-    def visualize(self, grid_size=(5, 5)):
+    def visualize(self):
         # Create an empty grid filled with dots
+        grid_size = (max(x for x, y in self.indices) + 1, max(y for x, y in self.indices) + 1)
         grid = [['.' for _ in range(grid_size[1])] for _ in range(grid_size[0])]
 
         # Mark block positions with 'X'

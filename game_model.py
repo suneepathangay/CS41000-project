@@ -73,7 +73,6 @@ class GameModel:
 
         # Remove the used block from current_shapes
         self.current_shapes.pop(shape_index)
-        print(block.shape)
 
         # Check for full rows and columns
         full_rows = self.check_full_rows()

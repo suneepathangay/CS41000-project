@@ -18,6 +18,7 @@ print(current_blocks)
 for block in current_blocks:
     print("Block shape: ", block.shape)
     print(visualize_block(block))
+    print("\n")
 
 
 model.place_block(row=0, col=0, block=current_blocks[0])

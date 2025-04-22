@@ -1,31 +1,6 @@
-from game_model import GameModel
-import heapq
 from copy import deepcopy
-from util import print_curr_state
-
-
-"""
-Contains the algorithms for the game such as A* search
-"""
-
-"""
-GameState class
-"""
-class GameState:
-    def __init__(self, grid, score, remaining_blocks):
-        self.grid = grid
-        self.score = score
-        self.remaining_blocks = remaining_blocks
-        self.g_cost = 0
-        self.h_cost = 0
-        self.parent = None
-        self.last_move = None
-
-    def __lt__(self, other):
-        return (self.g_cost + self.h_cost) < (other.g_cost + other.h_cost)
-
-    def get_f_cost(self):
-        return self.g_cost + self.h_cost
+import heapq
+from game_state import GameState
 
 class AStar:
     """
@@ -176,42 +151,3 @@ class AStar:
                 current = current.parent
             return path
         return None
-
-def main():
-    # Create a new game model
-    game = GameModel(grid_size=6)
-    astar = AStar()
-    
-    game.start_game()
-    
-    print("Initial game state:")
-    print(f"Score: {game.get_score()}")
-    print(f"Available blocks: {len(game.get_current_shapes())}")
-    print_curr_state(game.get_grid().grid) 
-    
-    # Iterate through a few rounds
-    for i in range(4):
-        print("Iteration", i + 1)
-        # Get the best move
-        best_moves = astar.get_best_moves(game)
-        if best_moves:
-            for shape in game.get_current_shapes():
-                shape.visualize()
-                print("\n")
-
-            for move in best_moves:
-                block_idx, block, row, col = move
-                print(f"Block: {block.shape}, Position: ({row}, {col}).")
-            
-                # Apply the move
-                game.place_block(row, col, block)
-                print(game.grid.visualize())
-            
-            print("\nAfter applying the best moves:")
-            print(f"Score: {game.get_score()}")
-            print(f"Available blocks: {len(game.get_current_shapes())}")
-        else:
-            print("\nNo valid moves found!")
-
-if __name__ == "__main__":
-    main()

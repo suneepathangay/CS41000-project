@@ -4,6 +4,13 @@ import heapq
 from copy import deepcopy
 
 
+"""
+Contains the algorithms for the game such as A* search
+"""
+
+"""
+GameState class
+"""
 
 class GameState:
     def __init__(self, grid, score, remaining_blocks):
@@ -21,6 +28,10 @@ class GameState:
     def get_f_cost(self):
         return self.g_cost + self.h_cost
 
+"""
+potnential heurisitc that that measures compactness of the grid 
+since it is bettert to clear the rows and cols 
+"""
 def heuristic(state):
     empty_spaces = 0
     potential_clears = 0
@@ -59,6 +70,9 @@ def heuristic(state):
 
     return -empty_spaces - (potential_clears * 10) - (isolated_spaces * 2)
 
+"""
+get_possible_moves function
+"""
 def get_possible_moves(state):
     moves = []
     grid = state.grid.grid

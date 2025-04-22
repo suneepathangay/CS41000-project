@@ -12,15 +12,16 @@ from tile import GridTile
 
 
 class GameModel:
-    def __init__(self) -> None:
-        self.grid = Grid()
+    def __init__(self, grid_size=8) -> None:
+        self.grid_size = grid_size
+        self.grid = Grid(grid_size)
         self.score = 0
         self.blocks = initialize_shapes()
         self.current_shapes = []
 
     def start_game(self):
         # Initialize the game state
-        self.grid = Grid()
+        self.grid = Grid(self.grid_size)
         self.score = 0
         self.current_shapes = []
 
@@ -65,12 +66,12 @@ class GameModel:
 
         # Clear full rows
         for r in full_rows:
-            for c in range(8):
+            for c in range(self.grid_size):
                 self.grid.set_tile(r, c, False)
 
         # Clear full columns
         for c in full_cols:
-            for r in range(8):
+            for r in range(self.grid_size):
                 self.grid.set_tile(r, c, False)
 
         # Update score
@@ -82,7 +83,7 @@ class GameModel:
         block_indices = block.indices
 
         for i in block_indices:
-            if row + i[0] < 0 or row + i[0] >= 8 or col + i[1] < 0 or col + i[1] >= 8:
+            if row + i[0] < 0 or row + i[0] >= self.grid_size or col + i[1] < 0 or col + i[1] >= self.grid_size:
                 return False
             tile = self.grid.get_tile(row + i[0], col + i[1])
             if tile.get_occupied():
@@ -111,7 +112,7 @@ class GameModel:
     def check_full_cols(self):
         full_cols = []
 
-        for col_i in range(8):
+        for col_i in range(self.grid_size):
             col = []
 
             is_full = True

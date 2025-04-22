@@ -2,7 +2,7 @@ from game_model import GameModel
 from util import print_curr_state, print_block
 
 
-model = GameModel()
+model = GameModel(grid_size=4)
 
 grid_arr = model.get_grid().grid
 model.start_game()

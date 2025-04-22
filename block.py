@@ -1,6 +1,3 @@
-from enum import Enum
-
-
 class Block:
     def __init__(self, shape, indices) -> None:
         self.shape=shape

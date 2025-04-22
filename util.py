@@ -11,20 +11,20 @@ def visualize_block(block: Block):
     # Getting the frame dimensions
     width = max([coor[1] for coor in block.indices]) + 1
     height = max([coor[0] for coor in block.indices]) + 1
-    
+
     # Initialize a proper 2D array filled with spaces
     display_arr = [[" " for _ in range(width)] for _ in range(height)]
-    
+
     # Place 'B' characters at block coordinates
     for coor in block.indices:
         row, col = coor[0], coor[1]
         display_arr[row][col] = "B"
-    
+
     # Convert to display string
     display_str = ""
     for row in display_arr:
         display_str += " ".join(row) + "\n"
-    
+
     return display_str
 
 

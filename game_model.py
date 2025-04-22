@@ -62,7 +62,7 @@ class GameModel:
             print("Current shapes: ", self.current_shapes)
             print("Block: ", block.shape)
             return False
-            
+
         # Check if the block can be placed
         if not self.can_place_block(row, col, block):
             return False  # Invalid placement
@@ -99,7 +99,12 @@ class GameModel:
         block_indices = block.indices
 
         for i in block_indices:
-            if row + i[0] < 0 or row + i[0] >= self.grid_size or col + i[1] < 0 or col + i[1] >= self.grid_size:
+            if (
+                row + i[0] < 0
+                or row + i[0] >= self.grid_size
+                or col + i[1] < 0
+                or col + i[1] >= self.grid_size
+            ):
                 return False
             tile = self.grid.get_tile(row + i[0], col + i[1])
             if tile.get_occupied():

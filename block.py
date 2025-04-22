@@ -1,7 +1,7 @@
 class Block:
     def __init__(self, shape, indices) -> None:
-        self.shape=shape
-        self.indices=indices
+        self.shape = shape
+        self.indices = indices
         self.rotation = 0
 
     def rotate(self, degrees=0):
@@ -32,19 +32,17 @@ class Block:
 
     def visualize(self):
         # Create an empty grid filled with dots
-        grid_size = (max(x for x, y in self.indices) + 1, max(y for x, y in self.indices) + 1)
-        grid = [['.' for _ in range(grid_size[1])] for _ in range(grid_size[0])]
+        grid_size = (
+            max(x for x, y in self.indices) + 1,
+            max(y for x, y in self.indices) + 1,
+        )
+        grid = [["." for _ in range(grid_size[1])] for _ in range(grid_size[0])]
 
         # Mark block positions with 'X'
         for r, c in self.indices:
             if 0 <= r < grid_size[0] and 0 <= c < grid_size[1]:  # Ensure within bounds
-                grid[r][c] = 'X'
+                grid[r][c] = "X"
 
         # Print the grid
         for row in grid:
-            print(' '.join(row))
-        
-
-
-
-
+            print(" ".join(row))

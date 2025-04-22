@@ -2,10 +2,12 @@ from copy import deepcopy
 import heapq
 from game_state import GameState
 
+
 class AStar:
     """
     A* Search algorithm implementation for finding optimal block placements
     """
+
     def __init__(self, max_depth=3):
         self.max_depth = max_depth
 
@@ -13,11 +15,12 @@ class AStar:
     potential heurisitc that that measures compactness of the grid 
     since it is better to clear the rows and cols 
     """
+
     def heuristic(self, state):
         empty_spaces = 0
         potential_clears = 0
         grid = state.grid.grid
-        
+
         for row in range(state.grid.get_size()):
             row_filled = True
             for col in range(state.grid.get_size()):
@@ -41,93 +44,100 @@ class AStar:
             for col in range(state.grid.get_size()):
                 if not grid[row][col].get_occupied():
                     has_neighbor = False
-                    for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+                    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                         nr, nc = row + dr, col + dc
-                        if 0 <= nr < state.grid.get_size() and 0 <= nc < state.grid.get_size() and grid[nr][nc].get_occupied():
+                        if (
+                            0 <= nr < state.grid.get_size()
+                            and 0 <= nc < state.grid.get_size()
+                            and grid[nr][nc].get_occupied()
+                        ):
                             has_neighbor = True
                             break
                     if not has_neighbor:
                         isolated_spaces += 1
 
-        return (
-            -empty_spaces * 1.0
-            -potential_clears * 10.0 
-            -isolated_spaces * 2.0
-        )
+        return -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
 
     """
     get_possible_moves function
     """
+
     def get_possible_moves(self, state):
         moves = []
         grid = state.grid.grid
-        
+
         for block_idx, block in enumerate(state.remaining_blocks):
             for row in range(state.grid.get_size()):
                 for col in range(state.grid.get_size()):
                     can_place = True
                     for dr, dc in block.indices:
                         nr, nc = row + dr, col + dc
-                        if nr >= state.grid.get_size() or nc >= state.grid.get_size() or grid[nr][nc].get_occupied():
+                        if (
+                            nr >= state.grid.get_size()
+                            or nc >= state.grid.get_size()
+                            or grid[nr][nc].get_occupied()
+                        ):
                             can_place = False
                             break
-                        
+
                     if can_place:
                         moves.append((block_idx, block, row, col))
-        
+
         return moves
 
     def apply_move(self, state, move):
         block_idx, block, row, col = move
-        new_state = GameState(deepcopy(state.grid), state.score, state.remaining_blocks.copy())
-        
+        new_state = GameState(
+            deepcopy(state.grid), state.score, state.remaining_blocks.copy()
+        )
+
         for dr, dc in block.indices:
             new_state.grid.set_tile(row + dr, col + dc, True)
-        
+
         # Remove by index instead of by reference
         new_state.remaining_blocks.pop(block_idx)
-        
+
         tiles_placed = len(block.indices)
         rows_cleared = len(new_state.grid.check_full_rows())
         cols_cleared = len(new_state.grid.check_full_cols())
         new_state.score += tiles_placed + (rows_cleared + cols_cleared) * 10
-        
+
         return new_state
 
     def a_star_search(self, initial_state):  # Changed default to 3
         open_set = []
         closed_set = set()
-        
+
         initial_state.h_cost = self.heuristic(initial_state)
         heapq.heappush(open_set, initial_state)
-        
+
         while open_set:
             current_state = heapq.heappop(open_set)
-            
+
             # If we've reached our depth limit, return the current best state
             if current_state.g_cost >= self.max_depth:
                 return current_state
-            
+
             if not current_state.remaining_blocks:
                 return current_state
-            
+
             moves = self.get_possible_moves(current_state)
-            
+
             for move in moves:
                 new_state = self.apply_move(current_state, move)
                 new_state.parent = current_state
                 new_state.last_move = move
                 new_state.g_cost = current_state.g_cost + 1
-                
+
                 # Only add if within depth limit
                 if new_state.g_cost <= self.max_depth:
                     new_state.h_cost = self.heuristic(new_state)
-                    
+
                     state_key = str(new_state.grid.grid)
                     if state_key not in closed_set:
                         heapq.heappush(open_set, new_state)
                         closed_set.add(state_key)
-        
+
         # If we can't find a complete solution, return the best partial solution
         if open_set:
             best_partial = min(open_set, key=lambda x: x.get_f_cost())
@@ -138,11 +148,11 @@ class AStar:
         initial_state = GameState(
             game_model.get_grid(),
             game_model.get_score(),
-            game_model.get_current_shapes()
+            game_model.get_current_shapes(),
         )
-        
+
         final_state = self.a_star_search(initial_state)
-        
+
         if final_state:
             path = []
             current = final_state

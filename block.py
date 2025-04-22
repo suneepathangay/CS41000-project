@@ -1,10 +1,8 @@
-from enum import Enum
-
-
 class Block:
     def __init__(self, shape, indices) -> None:
-        self.shape=shape
-        self.indices=indices
+        self.shape = shape
+        self.indices = indices
+        self.rotation = 0
 
     def rotate(self, degrees=0):
         """Rotates block around the pivot by 90, 180, or 270 degrees and shifts to avoid negative indices."""
@@ -30,21 +28,21 @@ class Block:
         shift_y = -min_y if min_y < 0 else 0
 
         self.indices = [(x + shift_x, y + shift_y) for x, y in new_indices]
+        self.rotation = (self.rotation + degrees) % 360
 
-    def visualize(self, grid_size=(5, 5)):
+    def visualize(self):
         # Create an empty grid filled with dots
-        grid = [['.' for _ in range(grid_size[1])] for _ in range(grid_size[0])]
+        grid_size = (
+            max(x for x, y in self.indices) + 1,
+            max(y for x, y in self.indices) + 1,
+        )
+        grid = [["." for _ in range(grid_size[1])] for _ in range(grid_size[0])]
 
         # Mark block positions with 'X'
         for r, c in self.indices:
             if 0 <= r < grid_size[0] and 0 <= c < grid_size[1]:  # Ensure within bounds
-                grid[r][c] = 'X'
+                grid[r][c] = "X"
 
         # Print the grid
         for row in grid:
-            print(' '.join(row))
-        
-
-
-
-
+            print(" ".join(row))

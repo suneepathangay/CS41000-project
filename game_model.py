@@ -12,8 +12,9 @@ from tile import GridTile
 
 
 class GameModel:
-    def __init__(self) -> None:
-        self.grid = Grid()
+    def __init__(self, grid_size=8) -> None:
+        self.grid_size = grid_size
+        self.grid = Grid(grid_size)
         self.score = 0
         self.blocks = initialize_shapes()
         self.current_shapes = []
@@ -22,7 +23,7 @@ class GameModel:
 
     def start_game(self):
         # Initialize the game state
-        self.grid = Grid()
+        self.grid = Grid(self.grid_size)
         self.score = 0
         self.current_shapes = []
 
@@ -63,7 +64,18 @@ class GameModel:
     """
 
     def place_block(self, row, col, block: Block):
-        # Update the score
+        shape_index = -1
+        for i, shape in enumerate(self.current_shapes):
+            if shape.shape == block.shape:
+                shape_index = i
+                break
+        if shape_index == -1:
+            print("Block not in current shapes")
+            print("Current shapes: ", self.current_shapes)
+            print("Block: ", block.shape)
+            return False
+
+        # Check if the block can be placed
         if not self.can_place_block(row, col, block):
             return False  # Invalid placement
 
@@ -71,18 +83,23 @@ class GameModel:
         for dr, dc in block.indices:
             self.grid.set_tile(row + dr, col + dc, True)
 
+        # Remove the used block from current_shapes
+        self.current_shapes.pop(shape_index)
+        if len(self.current_shapes) == 0:
+            self.new_round()
+
         # Check for full rows and columns
         full_rows = self.check_full_rows()
         full_cols = self.check_full_cols()
 
         # Clear full rows
         for r in full_rows:
-            for c in range(8):
+            for c in range(self.grid_size):
                 self.grid.set_tile(r, c, False)
 
         # Clear full columns
         for c in full_cols:
-            for r in range(8):
+            for r in range(self.grid_size):
                 self.grid.set_tile(r, c, False)
 
         # Update score
@@ -90,11 +107,16 @@ class GameModel:
 
         return True
 
-    def can_place_block(self, row, col, block):
+    def can_place_block(self, row, col, block: Block):
         block_indices = block.indices
 
         for i in block_indices:
-            if row + i[0] < 0 or row + i[0] >= 8 or col + i[1] < 0 or col + i[1] >= 8:
+            if (
+                row + i[0] < 0
+                or row + i[0] >= self.grid_size
+                or col + i[1] < 0
+                or col + i[1] >= self.grid_size
+            ):
                 return False
             tile = self.grid.get_tile(row + i[0], col + i[1])
             if tile.get_occupied():
@@ -123,7 +145,7 @@ class GameModel:
     def check_full_cols(self):
         full_cols = []
 
-        for col_i in range(8):
+        for col_i in range(self.grid_size):
             col = []
 
             is_full = True
@@ -168,7 +190,7 @@ class GameModel:
 
         self.score += base_score + bonus
 
-    def get_random_shape(self):
+    def get_random_shape(self) -> Block:
         # Generate a random shape
         # Return the shape
 

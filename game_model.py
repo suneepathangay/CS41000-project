@@ -17,6 +17,8 @@ class GameModel:
         self.score = 0
         self.blocks = initialize_shapes()
         self.current_shapes = []
+        self.scored_this_round = False
+        self.ongoing_streak_mult = 1
 
     def start_game(self):
         # Initialize the game state
@@ -39,12 +41,22 @@ class GameModel:
         return self.current_shapes
 
     def new_round(self):
-        # Get three new shapes (where it is possible to win the game?)
-        for i in range(3):
-            shape = self.get_random_shape()
-            self.current_shapes.append(shape)
-        # Check if the game is over
-        self.check_game_over()
+    if self.current_shapes != []:
+        raise Exception("You need to place the blocks before starting a new round")
+
+    # Get three new shapes
+    for i in range(3):
+        shape = self.get_random_shape()
+        self.current_shapes.append(shape)
+        if not self.scored_this_round:
+            self.ongoing_streak_mult = 1
+    
+    # Check if the game is over and handle it appropriately
+    if self.check_game_over():
+        print("Game Over! Final Score:", self.score)
+        return True  
+    
+    return False  # Game continues
 
     """
     Method to place the block on the board 
@@ -55,7 +67,7 @@ class GameModel:
         if not self.can_place_block(row, col, block):
             return False  # Invalid placement
 
-            # Place the block on the grid
+        # Place the block on the grid
         for dr, dc in block.indices:
             self.grid.set_tile(row + dr, col + dc, True)
 
@@ -132,15 +144,28 @@ class GameModel:
         return full_cols
 
     def check_game_over(self):
-        # Check if there are any empty tiles left
-        # Check if there are any blocks that can be placed
-        pass
+        if not self.current_shapes:
+            return False  # No shapes to check
+        
+        for shape in self.current_shapes:
+            # Check every possible position on the grid
+            for row in range(8):
+                for col in range(8):
+                    if self.can_place_block(row, col, shape):
+                        return False  # Found a valid placement
+    
+        return True
 
     def calculate_score(self, tiles_placed, rows_cleared, cols_cleared):
         # Calculate the score based on the number of tiles occupied
         # and the number of blocks placed
         base_score = tiles_placed
         bonus = (rows_cleared + cols_cleared) * 10  # 10 points per cleared row/col
+
+        bonus *= self.ongoing_streak_mult
+        self.ongoing_streak_mult += 1
+        self.scored_this_round = True
+
         self.score += base_score + bonus
 
     def get_random_shape(self):

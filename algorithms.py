@@ -1,9 +1,7 @@
 from game_model import GameModel
-from block import Block
 import heapq
 from copy import deepcopy
 from util import print_curr_state
-from grid import Grid
 
 
 """
@@ -30,8 +28,8 @@ class GameState:
         return self.g_cost + self.h_cost
 
 """
-potnential heurisitc that that measures compactness of the grid 
-since it is bettert to clear the rows and cols 
+potential heurisitc that that measures compactness of the grid 
+since it is better to clear the rows and cols 
 """
 def heuristic(state):
     empty_spaces = 0
@@ -69,7 +67,11 @@ def heuristic(state):
                 if not has_neighbor:
                     isolated_spaces += 1
 
-    return -empty_spaces - (potential_clears * 10) - (isolated_spaces * 2)
+    return (
+        -empty_spaces * 1.0
+        -potential_clears * 10.0 
+        -isolated_spaces * 2.0
+    )
 
 """
 get_possible_moves function
@@ -79,26 +81,22 @@ def get_possible_moves(state):
     grid = state.grid.grid
     
     for block_idx, block in enumerate(state.remaining_blocks):
-        for rotation in [0, 90, 180, 270]:
-            rotated_block = deepcopy(block)
-            rotated_block.rotate(rotation)
-            
-            for row in range(state.grid.get_size()):
-                for col in range(state.grid.get_size()):
-                    can_place = True
-                    for dr, dc in rotated_block.indices:
-                        nr, nc = row + dr, col + dc
-                        if nr >= state.grid.get_size() or nc >= state.grid.get_size() or grid[nr][nc].get_occupied():
-                            can_place = False
-                            break
+        for row in range(state.grid.get_size()):
+            for col in range(state.grid.get_size()):
+                can_place = True
+                for dr, dc in block.indices:
+                    nr, nc = row + dr, col + dc
+                    if nr >= state.grid.get_size() or nc >= state.grid.get_size() or grid[nr][nc].get_occupied():
+                        can_place = False
+                        break
                     
-                    if can_place:
-                        moves.append((block_idx, rotated_block, row, col, rotation))
+                if can_place:
+                    moves.append((block_idx, block, row, col))
     
     return moves
 
 def apply_move(state, move):
-    block_idx, block, row, col, rotation = move
+    block_idx, block, row, col = move
     new_state = GameState(deepcopy(state.grid), state.score, state.remaining_blocks.copy())
     
     for dr, dc in block.indices:
@@ -114,15 +112,19 @@ def apply_move(state, move):
     
     return new_state
 
-def a_star_search(initial_state, max_depth=10000):
+def a_star_search(initial_state, max_depth=3):  # Changed default to 3
     open_set = []
     closed_set = set()
     
     initial_state.h_cost = heuristic(initial_state)
     heapq.heappush(open_set, initial_state)
     
-    while open_set and len(open_set) < max_depth:
+    while open_set:
         current_state = heapq.heappop(open_set)
+        
+        # If we've reached our depth limit, return the current best state
+        if current_state.g_cost >= max_depth:
+            return current_state
         
         if not current_state.remaining_blocks:
             return current_state
@@ -134,18 +136,23 @@ def a_star_search(initial_state, max_depth=10000):
             new_state.parent = current_state
             new_state.last_move = move
             new_state.g_cost = current_state.g_cost + 1
-            new_state.h_cost = heuristic(new_state)
-            print(new_state.grid.visualize())
-
             
-            state_key = str(new_state.grid.grid)
-            if state_key not in closed_set:
-                heapq.heappush(open_set, new_state)
-                closed_set.add(state_key)
+            # Only add if within depth limit
+            if new_state.g_cost <= max_depth:
+                new_state.h_cost = heuristic(new_state)
+                
+                state_key = str(new_state.grid.grid)
+                if state_key not in closed_set:
+                    heapq.heappush(open_set, new_state)
+                    closed_set.add(state_key)
     
+    # If we can't find a complete solution, return the best partial solution
+    if open_set:
+        best_partial = min(open_set, key=lambda x: x.get_f_cost())
+        return best_partial
     return None
 
-def get_best_move(game_model):
+def get_best_moves(game_model):
     initial_state = GameState(
         game_model.get_grid(),
         game_model.get_score(),
@@ -160,17 +167,14 @@ def get_best_move(game_model):
         while current.parent:
             path.append(current.last_move)
             current = current.parent
-        return path[-1]
+        return path
     return None
 
 def main():
     # Create a new game model
-    game = GameModel(grid_size=4)
+    game = GameModel(grid_size=6)
     
-    # Initialize the game with some blocks
-    # This would depend on how your GameModel and Block classes are implemented
-    # For example:
-    game.start_game()  # Assuming this method exists
+    game.start_game()
     
     print("Initial game state:")
     print(f"Score: {game.get_score()}")
@@ -178,19 +182,21 @@ def main():
     print_curr_state(game.get_grid().grid) 
     
     # Get the best move
-    best_move = get_best_move(game)
+    best_moves = get_best_moves(game)
     
-    if best_move:
-        block, row, col, rotation = best_move
-        print(f"\nBest move found:")
-        print(f"Block: {block}")
-        print(f"Position: ({row}, {col})")
-        print(f"Rotation: {rotation} degrees")
+    if best_moves:
+        for move in best_moves:
+            block_idx, block, row, col = move
+            print(f"Block index: {block_idx}, Position: ({row}, {col}).")
         
-        # Apply the move
-        # game.place_block(block, row, col)  # Assuming this method exists
+            # Apply the move
+            print(game.grid.visualize())
+            for shape in game.get_current_shapes():
+                print(shape.visualize())
+            game.place_block(row, col, block)
         
-        print("\nAfter applying the best move:")
+        print(game.grid.visualize())
+        print("\nAfter applying the best moves:")
         print(f"Score: {game.get_score()}")
         print(f"Available blocks: {len(game.get_current_shapes())}")
         print_curr_state(game.get_grid().grid) 

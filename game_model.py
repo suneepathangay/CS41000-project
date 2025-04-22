@@ -52,13 +52,28 @@ class GameModel:
     """
 
     def place_block(self, row, col, block: Block):
-        # Update the score
+        shape_index = -1
+        for i, shape in enumerate(self.current_shapes):
+            if shape.shape == block.shape:
+                shape_index = i
+                break
+        if shape_index == -1:
+            print("Block not in current shapes")
+            print("Current shapes: ", self.current_shapes)
+            print("Block: ", block.shape)
+            return False
+            
+        # Check if the block can be placed
         if not self.can_place_block(row, col, block):
             return False  # Invalid placement
 
-            # Place the block on the grid
+        # Place the block on the grid
         for dr, dc in block.indices:
             self.grid.set_tile(row + dr, col + dc, True)
+
+        # Remove the used block from current_shapes
+        self.current_shapes.pop(shape_index)
+        print(block.shape)
 
         # Check for full rows and columns
         full_rows = self.check_full_rows()
@@ -79,7 +94,7 @@ class GameModel:
 
         return True
 
-    def can_place_block(self, row, col, block):
+    def can_place_block(self, row, col, block: Block):
         block_indices = block.indices
 
         for i in block_indices:
@@ -144,7 +159,7 @@ class GameModel:
         bonus = (rows_cleared + cols_cleared) * 10  # 10 points per cleared row/col
         self.score += base_score + bonus
 
-    def get_random_shape(self):
+    def get_random_shape(self) -> Block:
         # Generate a random shape
         # Return the shape
 

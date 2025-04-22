@@ -7,28 +7,24 @@ Contains useful util methods
 """
 
 
-def print_block(block: Block):
-    ##getting the frame
+def visualize_block(block: Block):
+    # Getting the frame dimensions
     width = max([coor[1] for coor in block.indices]) + 1
     height = max([coor[0] for coor in block.indices]) + 1
-
-    display_arr = []
-
-    display_width = [""] * width
-
-    for i in range(height):
-        display_arr.append(display_width)
-
+    
+    # Initialize a proper 2D array filled with spaces
+    display_arr = [[" " for _ in range(width)] for _ in range(height)]
+    
+    # Place 'B' characters at block coordinates
     for coor in block.indices:
-        display_arr[coor[0]][coor[1]] = "B"
-
+        row, col = coor[0], coor[1]
+        display_arr[row][col] = "B"
+    
+    # Convert to display string
     display_str = ""
-
-    for arr in display_arr:
-        string_arr = " ".join(arr)
-        display_str += string_arr
-        display_str += "\n"
-
+    for row in display_arr:
+        display_str += " ".join(row) + "\n"
+    
     return display_str
 
 
@@ -88,7 +84,7 @@ def initialize_shapes():
     blocks.append(Block("2x2 Square", [(0, 0), (0, 1), (1, 0), (1, 1)]))
     # 2x1 rectangle
     blocks.append(Block("2x1 Rectangle", [(0, 0), (0, 1)]))
-    blocks.append(Block("2x1 Rectangle", [(0, 0), (1, 0)]))
+    blocks.append(Block("2x1 Rectangle Inverted", [(0, 0), (1, 0)]))
 
     # 2x2 corner(s)
     base_indices = [(0, 0), (0, 1), (1, 0)]
@@ -113,10 +109,10 @@ def initialize_shapes():
 
     # 2x2 diagonal(s)
     blocks.append(Block("2x2 Diagonal", [(0, 0), (1, 1)]))
-    blocks.append(Block("2x2 Diagonal", [(1, 0), (0, 1)]))
+    blocks.append(Block("2x2 Diagonal Inverted", [(1, 0), (0, 1)]))
     # 3x3 diagonal(s)
     blocks.append(Block("3x3 Diagonal", [(0, 0), (1, 1), (2, 2)]))
-    blocks.append(Block("3x3 Diagonal", [(2, 0), (1, 1), (0, 2)]))
+    blocks.append(Block("3x3 Diagonal Inverted", [(2, 0), (1, 1), (0, 2)]))
     # 1x1 square
     blocks.append(Block("1x1 Square", [(0, 0)]))
 

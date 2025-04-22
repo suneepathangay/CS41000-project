@@ -2,6 +2,7 @@ class Block:
     def __init__(self, shape, indices) -> None:
         self.shape=shape
         self.indices=indices
+        self.rotation = 0
 
     def rotate(self, degrees=0):
         """Rotates block around the pivot by 90, 180, or 270 degrees and shifts to avoid negative indices."""
@@ -27,6 +28,7 @@ class Block:
         shift_y = -min_y if min_y < 0 else 0
 
         self.indices = [(x + shift_x, y + shift_y) for x, y in new_indices]
+        self.rotation = (self.rotation + degrees) % 360
 
     def visualize(self, grid_size=(5, 5)):
         # Create an empty grid filled with dots

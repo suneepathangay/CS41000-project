@@ -63,13 +63,11 @@ def main():
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")
 
-            # simulate_game(astar, seed=seed, verbose=False, iterations=iteration)
-            # simulate_game(expectimax, seed=seed, verbose=False, iterations=iteration)
-            # simulate_game(mcts, seed=seed, verbose=False, iterations=iteration)
-            # simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(astar, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(expectimax, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(mcts, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
             print("\n" + "="*50)
-
-    simulate_game(mcts, seed=42, verbose=True)
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ def q_star_learning():
     game.start_game()
     
     
-    q_learn = QLearn(max_depth=5)
+    q_learn = QLearn(max_depth=10)
     evaluation, moves = q_learn.get_best_moves(game)
     
     print("moves\n")

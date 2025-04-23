@@ -2,301 +2,186 @@ from copy import deepcopy
 import random
 from game_state import GameState
 from game_model import GameModel
-
-def get_possible_moves(state):
-    """
-    Get all possible moves for the current blocks
-    """
-    moves = []
-    grid = state.grid
-    grid_size = grid.get_size()
-    
-    for block_idx, block in enumerate(state.remaining_blocks):
-        for row in range(grid_size):
-            for col in range(grid_size):
-                can_place = True
-                for dr, dc in block.indices:
-                    nr, nc = row + dr, col + dc
-                    if (
-                        nr < 0 or nr >= grid_size or
-                        nc < 0 or nc >= grid_size or
-                        grid.get_tile(row=nr, col=nc).get_occupied()
-                    ):
-                        can_place = False
-                        break
-                
-                if can_place:
-                    moves.append((block_idx, block, row, col))
-    
-    # Shuffle moves for diversity
-    random.shuffle(moves)
-    return moves
-
-def apply_move(state, move):
-    """
-    Apply a move to the state and return the new state
-    """
-    block_idx, block, row, col = move
-    grid_size = state.grid.get_size()
-    
-    # Create new state with deep copies
-    new_state = GameState(
-        grid=deepcopy(state.grid),
-        score=state.score,
-        remaining_blocks=deepcopy(state.remaining_blocks),
-        blocks=state.blocks,
-        current_streak_mult=state.current_streak_mult,
-        scored_this_round=state.scored_this_round
-    )
-    
-    # Place the block using the correct API
-    for dr, dc in block.indices:
-        nr, nc = row + dr, col + dc
-        new_state.grid.set_tile(row=nr, col=nc, tile_state=True)
-    
-    # Remove used block
-    new_state.remaining_blocks.pop(block_idx)
-    
-    # Use the built-in methods to check for full rows and columns
-    full_rows = new_state.grid.check_full_rows()
-    full_cols = new_state.grid.check_full_cols()
-    
-    # Calculate score
-    tiles_placed = len(block.indices)
-    clear_score = (len(full_rows) + len(full_cols)) * 10
-    
-    if clear_score > 0:
-        new_state.scored_this_round = True
-        multiplied_clear_score = clear_score * new_state.current_streak_mult
-        new_state.current_streak_mult += 1
-        new_state.score += tiles_placed + multiplied_clear_score
-    else:
-        if not new_state.scored_this_round:
-            new_state.current_streak_mult = 1
-        new_state.score += tiles_placed
-    
-    # Clear full rows and columns
-    for r in full_rows:
-        for c in range(grid_size):
-            new_state.grid.set_tile(row=r, col=c, tile_state=False)
-    
-    for c in full_cols:
-        for r in range(grid_size):
-            new_state.grid.set_tile(row=r, col=c, tile_state=False)
-    
-    # Add new blocks if needed (this is the key for multi-turn planning)
-    if len(new_state.remaining_blocks) == 0 and hasattr(state, 'blocks') and state.blocks:
-        # This is a new round, we need to add new blocks
-        # Since we can't directly call game_model methods, we'll simulate adding new blocks
-        # by sampling from the available blocks
-        if hasattr(state, 'blocks') and len(state.blocks) > 0:
-            # Add 3 new random blocks (or as many as available)
-            for _ in range(min(3, len(state.blocks))):
-                idx = random.randint(0, len(state.blocks) - 1)
-                new_block = deepcopy(state.blocks[idx])
-                new_state.remaining_blocks.append(new_block)
-            
-            # Reset scored_this_round flag for the new round
-            if not new_state.scored_this_round:
-                new_state.current_streak_mult = 1
-            new_state.scored_this_round = False
-    
-    return new_state
+from algorithms.algorithm_utils import get_possible_moves, apply_move
 
 class QLearn:
     """
-    Q* Search algorithm implementation using depth-limited lookahead
-    with heuristic evaluation to estimate long-term rewards.
+    Basic Q-learning algorithm implementation following the formula:
+    Q(s,a) = Q(s,a) + α[R + γ·max_a Q(s',a') - Q(s,a)]
+    
+    Where:
+    - s is the current state
+    - a is the action taken
+    - s' is the next state
+    - R is the immediate reward
+    - α is the learning rate
+    - γ is the discount factor
     """
     
-    def __init__(self, max_depth=2):
+    def __init__(self, max_depth=2, learning_rate=0.5, discount_factor=0.9):
         self.max_depth = max_depth
+        self.learning_rate = learning_rate  # Alpha (α)
+        self.discount_factor = discount_factor  # Gamma (γ)
         self.nodes_evaluated = 0
-        self.all_paths = []
-        # Set a different random seed each time
-        self.random_seed = random.randint(1, 10000)
-        random.seed(self.random_seed)
+        self.q_values = {}  # Dictionary to store Q-values for state-action pairs
     
-    def evaluate(self, state: GameState):
+    def get_state_key(self, state):
         """
-        Heuristic evaluation function: higher is better
+        Generate a unique key for a state to use in the Q-value dictionary.
+        """
+        # For the state key, we'll use a simplified grid representation
+        grid = state.grid
+        grid_size = grid.get_size()
+        grid_str = ""
+        
+        for row in range(grid_size):
+            for col in range(grid_size):
+                grid_str += "1" if grid.get_tile(row=row, col=col).get_occupied() else "0"
+        
+        # Add remaining blocks
+        blocks_str = "|"
+        for block in state.remaining_blocks:
+            blocks_str += str(hash(str(block.indices)))
+        
+        # Add score and multiplier
+        state_key = f"{grid_str}{blocks_str}|{state.score}|{state.current_streak_mult}"
+        return state_key
+    
+    def get_action_key(self, action):
+        """
+        Generate a unique key for an action.
+        """
+        block_idx, _, row, col = action
+        return f"{block_idx}_{row}_{col}"
+    
+    def get_q_value(self, state, action):
+        """
+        Get the Q-value for a state-action pair.
+        If not in dictionary, initialize to 0.
+        """
+        state_key = self.get_state_key(state)
+        action_key = self.get_action_key(action)
+        
+        if state_key not in self.q_values:
+            self.q_values[state_key] = {}
+        
+        if action_key not in self.q_values[state_key]:
+            self.q_values[state_key][action_key] = 0.0
+            
+        return self.q_values[state_key][action_key]
+    
+    def update_q_value(self, state, action, reward, next_state, next_max_q):
+        """
+        Update Q-value using the Q-learning formula:
+        Q(s,a) = Q(s,a) + α[R + γ·max_a Q(s',a') - Q(s,a)]
+        """
+        state_key = self.get_state_key(state)
+        action_key = self.get_action_key(action)
+        
+        # Get current Q-value
+        current_q = self.get_q_value(state, action)
+        
+        # Calculate temporal difference
+        td_target = reward + self.discount_factor * next_max_q
+        td_error = td_target - current_q
+        
+        # Update Q-value
+        new_q_value = current_q + self.learning_rate * td_error
+        
+        # Store the updated Q-value
+        if state_key not in self.q_values:
+            self.q_values[state_key] = {}
+        
+        self.q_values[state_key][action_key] = new_q_value
+        
+        return new_q_value
+    
+    def get_max_q_value(self, state):
+        """
+        Get the maximum Q-value for any action from the current state.
+        """
+        possible_moves = get_possible_moves(state)
+        
+        if not possible_moves:
+            return 0.0
+        
+        max_q = float('-inf')
+        
+        for move in possible_moves:
+            q_value = self.get_q_value(state, move)
+            if q_value > max_q:
+                max_q = q_value
+        
+        return max_q
+    
+    def get_reward(self, state, action, next_state):
+        """
+        Calculate the immediate reward for taking an action.
+        Here we use the score difference as the reward.
+        """
+        reward = next_state.score - state.score
+        
+        # Additional reward for clearing lines
+        grid_size = state.grid.get_size()
+        full_rows = next_state.grid.check_full_rows()
+        full_cols = next_state.grid.check_full_cols()
+        
+        # Add bonus reward for clearing lines
+        reward += (len(full_rows) + len(full_cols)) * 10
+        
+        return reward
+    
+    def q_learning_search(self, state, depth):
+        """
+        Perform Q-learning search to find the best action sequence.
         """
         self.nodes_evaluated += 1
         
-        empty_spaces = 0
-        potential_clears = 0
-        grid = state.grid
-        grid_size = grid.get_size()
-        
-        # Count empty spaces and potential row/column clears
-        for row in range(grid_size):
-            row_filled = True
-            row_occupied = 0
-            for col in range(grid_size):
-                if not grid.get_tile(row=row, col=col).get_occupied():
-                    empty_spaces += 1
-                    row_filled = False
-                else:
-                    row_occupied += 1
-            
-            if row_filled:
-                potential_clears += 1
-            # Partial credit for nearly full rows
-            elif row_occupied >= grid_size * 0.75:
-                potential_clears += 0.5
-        
-        for col in range(grid_size):
-            col_filled = True
-            col_occupied = 0
-            for row in range(grid_size):
-                if not grid.get_tile(row=row, col=col).get_occupied():
-                    col_filled = False
-                else:
-                    col_occupied += 1
-            
-            if col_filled:
-                potential_clears += 1
-            # Partial credit for nearly full columns
-            elif col_occupied >= grid_size * 0.75:
-                potential_clears += 0.5
-        
-        # Count isolated spaces
-        isolated_spaces = 0
-        for row in range(grid_size):
-            for col in range(grid_size):
-                if not grid.get_tile(row=row, col=col).get_occupied():
-                    has_neighbor = False
-                    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                        nr, nc = row + dr, col + dc
-                        if (
-                            0 <= nr < grid_size
-                            and 0 <= nc < grid_size
-                            and grid.get_tile(row=nr, col=nc).get_occupied()
-                        ):
-                            has_neighbor = True
-                            break
-                    if not has_neighbor:
-                        isolated_spaces += 1
-        
-        # Add a larger random factor (15% variation) to encourage diversity
-        random_factor = random.uniform(0.85, 1.15)
-        
-        # Calculate final score with more randomness
-        score = (
-            (state.score * 2.0)
-            + (-empty_spaces * 1.0)
-            + (potential_clears * 10.0) 
-            + (-isolated_spaces * 2.0)
-            + (state.current_streak_mult * 5.0 if state.current_streak_mult > 1 else 0)
-        ) * random_factor
-        
-        # Add a bonus for states with more moves left (for longer paths)
-        if hasattr(state, 'remaining_blocks') and len(state.remaining_blocks) > 0:
-            score += len(state.remaining_blocks) * 2.0
-            
-        return score
-    
-    def simulate_next_round(self, state):
-        """
-        Simulate adding new blocks for the next round
-        """
-        if not hasattr(state, 'blocks') or not state.blocks:
-            return state  # Can't add new blocks
-            
-        new_state = GameState(
-            grid=deepcopy(state.grid),
-            score=state.score,
-            remaining_blocks=[],  # Start with empty list
-            blocks=state.blocks,
-            current_streak_mult=state.current_streak_mult,
-            scored_this_round=False  # Reset for new round
-        )
-        
-        # Add 3 new random blocks or as many as available
-        for _ in range(min(3, len(state.blocks))):
-            idx = random.randint(0, len(state.blocks) - 1)
-            new_block = deepcopy(state.blocks[idx])
-            new_state.remaining_blocks.append(new_block)
-            
-        return new_state
-    
-    def q_star_search(self, state, depth, path_so_far=None):
-        """
-        Recursive depth-limited Q* lookahead with path tracking
-        """
-        if path_so_far is None:
-            path_so_far = []
-            
-        # Debug print
-        print(f"Searching at depth: {depth}, Remaining blocks: {len(state.remaining_blocks)}")
-        
-        # Base case: reached maximum depth or game over
-        if depth <= 0:
-            eval_score = self.evaluate(state)
-            print(f"Reached terminal state, evaluation: {eval_score}")
-            return eval_score, path_so_far
+        # Base case: reached maximum depth or no more blocks
+        if depth <= 0 or not state.remaining_blocks:
+            return [], 0
         
         # Get all possible moves
         possible_moves = get_possible_moves(state)
-        print(f"Found {len(possible_moves)} possible moves at depth {depth}")
         
-        # No valid moves case
         if not possible_moves:
-            # Check if we can start a new round
-            if len(state.remaining_blocks) == 0 and hasattr(state, 'blocks') and state.blocks:
-                # Try to get new blocks and continue
-                new_state = self.simulate_next_round(state)
-                if len(new_state.remaining_blocks) > 0:
-                    return self.q_star_search(new_state, depth - 1, path_so_far)
-                
-            # No more moves possible
-            eval_score = self.evaluate(state)
-            print(f"No possible moves, evaluation: {eval_score}")
-            return eval_score, path_so_far
+            return [], 0
         
-        best_score = float('-inf')
-        best_path = None
+        best_action = None
+        best_q_value = float('-inf')
+        best_path = []
         
-        # Limit moves to evaluate for higher depths to improve performance
-        max_moves = min(len(possible_moves), 10 if depth > 3 else 15)
-        
-        # Try each move
-        for move_idx, move in enumerate(possible_moves[:max_moves]):
-            print(f"Evaluating move {move_idx+1}/{max_moves} at depth {depth}")
+        # Try each action and update Q-values
+        for action in possible_moves:
+            # Apply action to get next state
+            next_state = apply_move(state, action)
             
-            # Apply the move to get new state
-            new_state = apply_move(state, move)
+            # Calculate immediate reward
+            reward = self.get_reward(state, action, next_state)
             
-            # Recursively search from this new state with reduced depth
-            new_path = path_so_far + [move]  # Add current move to path
-            score, sub_path = self.q_star_search(new_state, depth - 1, new_path)
+            # Recursively search for best action sequence from next state
+            next_path, _ = self.q_learning_search(next_state, depth - 1)
             
-            # Add small random variation to break ties
-            score_with_noise = score * random.uniform(0.98, 1.02)
+            # Get max Q-value for next state
+            next_max_q = self.get_max_q_value(next_state)
             
-            # If this move is better than the best so far, update
-            if score_with_noise > best_score:
-                best_score = score_with_noise
-                best_path = sub_path
-                print(f"New best score at depth {depth}: {best_score}")
+            # Update Q-value using the formula
+            q_value = self.update_q_value(state, action, reward, next_state, next_max_q)
+            
+            # Track best action based on updated Q-value
+            if q_value > best_q_value:
+                best_q_value = q_value
+                best_action = action
+                best_path = [action] + next_path
         
-        # Store this path for potential later use
-        if best_path and len(best_path) > 0:
-            if len(best_path) > len(path_so_far):
-                self.all_paths.append((best_score, best_path))
-        
-        return best_score, best_path if best_path else path_so_far
+        return best_path, best_q_value
     
     def get_best_moves(self, game_model: GameModel):
         """
-        Entry point to get the best move sequence from the current game state
+        Entry point to get the best move sequence from the current game state.
         """
-        print(f"Starting Q* search with max depth: {self.max_depth}")
+        print(f"Starting Q-learning search with max depth: {self.max_depth}")
         self.nodes_evaluated = 0
-        self.all_paths = []
-        
-        # Set a new random seed each time
-        random.seed(self.random_seed + self.max_depth)
         
         initial_state = GameState(
             grid=deepcopy(game_model.get_grid()),
@@ -307,30 +192,32 @@ class QLearn:
             scored_this_round=game_model.get_scored_this_round()
         )
         
-        print(f"Initial state has {len(initial_state.remaining_blocks)} blocks")
+        print(f"Initial state has {len(initial_state.remaining_blocks)} blocks, Initial score: {initial_state.score}")
         
-        # Run search with different random seeds
-        score, best_path = self.q_star_search(initial_state, self.max_depth)
+        # Run Q-learning search
+        best_path, best_q_value = self.q_learning_search(initial_state, self.max_depth)
         
-        # Add some variation - sometimes pick a different path for diversity
-        if len(self.all_paths) > 1:
-            # Sort paths by score (descending) and then by length (descending)
-            self.all_paths.sort(key=lambda x: (x[0], len(x[1])), reverse=True)
+        # Simulate the best path to get the final score
+        final_score = initial_state.score
+        current_state = initial_state
+        
+        for i, move in enumerate(best_path):
+            next_state = apply_move(current_state, move)
+            reward = next_state.score - current_state.score
+            current_state = next_state
             
-            # 20% chance to pick a different path for variety
-            if random.random() < 0.2 and len(self.all_paths) > 1:
-                # Pick a random path from the top half of paths
-                idx = random.randint(1, min(len(self.all_paths) - 1, 3))
-                score, best_path = self.all_paths[idx]
-                print(f"Selected alternative path for variety. Score: {score}")
+            print(f"Move {i+1}: Score change: +{reward}, New score: {current_state.score}")
+            
+        final_score = current_state.score
         
-        # Print detailed information about the chosen path
+        # Print details about the chosen path
         if best_path:
             print(f"Selected path length: {len(best_path)}")
             for i, move in enumerate(best_path):
                 block_idx, block, row, col = move
                 print(f"Move {i+1}: Block {block_idx} at position ({row}, {col})")
-            
-        print(f"Search complete. Total states evaluated: {self.nodes_evaluated}")
         
-        return score, best_path or []
+        print(f"Search complete. Total states evaluated: {self.nodes_evaluated}")
+        print(f"Final score: {final_score}, Best Q-value: {best_q_value}")
+        
+        return final_score, best_path

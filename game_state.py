@@ -1,3 +1,5 @@
+from grid import Grid
+
 """
 GameState class
 """
@@ -19,6 +21,19 @@ class GameState:
 
     def get_f_cost(self):
         return self.g_cost + self.h_cost
+
+    
+    
+    
+    def set_remaining_blocks(self, blocks_remaining):
+        self.remaining_blocks = blocks_remaining
+        
+    def get_remaining_blocks(self):
+        return self.remaining_blocks
+        
+    
+    
+
 
     def clone(self):
         return GameState(

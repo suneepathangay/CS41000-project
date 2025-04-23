@@ -3,6 +3,7 @@ from algorithms.AStar import AStar
 from algorithms.Expectimax import Expectimax
 from algorithms.MCTS import MCTS
 from util import print_curr_state
+from algorithms.qLearn import QLearn
 
 def simulate_game(algorithm, seed=None, verbose=False, iterations=5):
     """
@@ -27,6 +28,7 @@ def simulate_game(algorithm, seed=None, verbose=False, iterations=5):
             print("Iteration", i + 1)
         # Get the best move
         best_moves = algorithm.get_best_moves(game)
+        print(best_moves)
 
         if best_moves:
             if verbose:
@@ -55,6 +57,8 @@ def main():
     astar = AStar()
     expectimax = Expectimax(seed=42, max_depth=4)
     mcts = MCTS()
+    
+    qlearn = QLearn()
 
     seeds = [42, 123, 456, 789, 2000]
     iterations = [3, 5, 10]
@@ -62,10 +66,13 @@ def main():
     for seed in seeds:
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")
+
             simulate_game(astar, seed=seed, verbose=False, iterations=iteration)
             simulate_game(expectimax, seed=seed, verbose=False, iterations=iteration)
             simulate_game(mcts, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
             print("\n" + "="*50)
 
+            
 if __name__ == "__main__":
     main()

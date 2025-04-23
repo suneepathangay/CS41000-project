@@ -107,18 +107,12 @@ class GameModel:
         return False  # Game continues
 
     def place_block(self, row, col, block: Block):
-        """
-        Attempts to place a block on the grid, clears completed rows and columns,
-        updates the score, and proceeds to a new round if all shapes are used.
-
-        Args:
-            row (int): Row index for the block's top-left position.
-            col (int): Column index for the block's top-left position.
-            block (Block): The block to be placed.
-
-        Returns:
-            bool: True if the block was successfully placed; False otherwise.
-        """
+        
+        if len(self.get_current_shapes())==0:
+            for i in range(3):
+                shape = self._get_random_shape()
+                self.current_shapes.append(shape)
+                
         shape_index = -1
         for i, shape in enumerate(self.current_shapes):
             if shape.shape == block.shape:

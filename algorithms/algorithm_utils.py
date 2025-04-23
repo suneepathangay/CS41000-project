@@ -108,7 +108,7 @@ def apply_move(state, move):
     new_state = GameState(
         deepcopy(state.grid),
         state.score,
-        deepcopy(state.remaining_blocks.copy()),
+        blocks,
         state.blocks,
         state.current_streak_mult,
         state.scored_this_round,

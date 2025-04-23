@@ -123,9 +123,15 @@ class MCTS:
                 moves = get_possible_moves(state)
                 if not moves:
                     break
+                    
                 move = moves[node.rng.randint(0, len(moves) - 1)]
                 state = apply_move(state, move)
                 current_depth += 1
+                
+                # Check if we need to regenerate shapes (every 3 moves)
+                if current_depth % 3 == 0 and current_depth < 3:
+                    # Generate new shapes within the simulation
+                    state.current_shapes = self._generate_new_shapes(state)
                 
             # Backpropagation
             result = evaluate(state)
@@ -135,6 +141,16 @@ class MCTS:
                 
         # Find the best move sequence
         return self._get_best_sequence(root)
+    
+    def _generate_new_shapes(self, state):
+        """
+        Generate a new set of shapes based on remaining blocks
+        """
+        possible_shapes = get_possible_blocks(state.grid, state.blocks)
+        new_shapes = []
+        for i in range(3):
+            new_shapes.append(possible_shapes[state.rng.randint(0, len(possible_shapes) - 1)])
+        return new_shapes
     
     def _is_terminal(self, state):
         """

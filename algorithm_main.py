@@ -18,9 +18,6 @@ def simulate_game(algorithm, seed=None, verbose=False, iterations=5):
         print(f"Score: {game.get_score()}")
         print(f"Available blocks: {len(game.get_current_shapes())}")
         print_curr_state(game.get_grid().grid)
-        for shape in game.get_current_shapes():
-            print(shape)
-            print("\n")
 
     # Iterate through a few rounds
     for i in range(iterations):
@@ -28,7 +25,6 @@ def simulate_game(algorithm, seed=None, verbose=False, iterations=5):
             print("Iteration", i + 1)
         # Get the best move
         best_moves = algorithm.get_best_moves(game)
-        print(best_moves)
 
         if best_moves:
             if verbose:
@@ -73,6 +69,6 @@ def main():
             simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
             print("\n" + "="*50)
 
-            
+
 if __name__ == "__main__":
     main()

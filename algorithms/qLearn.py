@@ -1,5 +1,4 @@
 from copy import deepcopy
-import random
 from game_state import GameState
 from game_model import GameModel
 from algorithms.algorithm_utils import get_possible_moves, apply_move
@@ -122,7 +121,6 @@ class QLearn:
         reward = next_state.score - state.score
         
         # Additional reward for clearing lines
-        grid_size = state.grid.get_size()
         full_rows = next_state.grid.check_full_rows()
         full_cols = next_state.grid.check_full_cols()
         
@@ -147,7 +145,6 @@ class QLearn:
         if not possible_moves:
             return [], 0
         
-        best_action = None
         best_q_value = float('-inf')
         best_path = []
         
@@ -171,7 +168,6 @@ class QLearn:
             # Track best action based on updated Q-value
             if q_value > best_q_value:
                 best_q_value = q_value
-                best_action = action
                 best_path = [action] + next_path
         
         return best_path, best_q_value

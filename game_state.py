@@ -19,3 +19,19 @@ class GameState:
 
     def get_f_cost(self):
         return self.g_cost + self.h_cost
+
+    def clone(self):
+        return GameState(
+            self.grid.clone(),
+            self.score,
+            self.remaining_blocks,
+            self.blocks,
+            self.current_streak_mult,
+            self.scored_this_round
+        )
+        
+    def clone_with_new_shapes(self, shapes):
+        new_state = self.clone()
+        new_state.remaining_blocks = shapes
+        new_state.blocks = shapes
+        return new_state

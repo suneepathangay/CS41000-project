@@ -1,4 +1,3 @@
-from copy import deepcopy
 from game_state import GameState
 from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move
 
@@ -17,12 +16,10 @@ class Expectimax:
         """
         Expectimax algorithm implementation
         For max player, chooses move with highest expected value
-        For chance player, calculates expected value across all possibilities
         """
         # Terminal conditions
         if depth == 0 or not state.remaining_blocks:
             return evaluate(state), None
-
 
         # Max player (the actual player making a decision)
         moves = get_possible_moves(state)
@@ -34,8 +31,6 @@ class Expectimax:
 
         for move in moves:
             new_state = apply_move(state, move)
-            # For a 3-step search, we need to consider the next moves
-            # that could be made after this one
             value, _ = self.expectimax(new_state, depth - 1)
 
             if value > best_value:
@@ -52,6 +47,8 @@ class Expectimax:
             game_model.get_grid(),
             game_model.get_score(),
             game_model.get_current_shapes(),
+            current_streak_mult=game_model.get_current_streak_mult(),
+            scored_this_round=game_model.get_scored_this_round(),
         )
 
         _, best_move = self.expectimax(initial_state, self.max_depth)

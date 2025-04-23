@@ -47,13 +47,17 @@ def evaluate(state):
                 if not has_neighbor:
                     isolated_spaces += 1
 
-    # Calculate score: prefer fewer empty spaces, more potential clears, fewer isolated spaces
-    return (
-        state.score
-        + (-empty_spaces * 1.0)
-        + (potential_clears * 10.0)
-        + (-isolated_spaces * 2.0)
-    )
+    base_score = -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
+    
+    streak_bonus = 0
+    if state.current_streak_mult > 1 and not state.scored_this_round:
+        # Heavily reward potential clears to avoid losing the multiplier
+        streak_bonus = potential_clears * 25.0 * state.current_streak_mult
+    else:
+        # Still reward potential clears based on current multiplier
+        streak_bonus = potential_clears * 5.0 * state.current_streak_mult
+    
+    return base_score + streak_bonus
 
 def get_possible_moves(state):
     """

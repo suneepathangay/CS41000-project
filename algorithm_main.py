@@ -21,8 +21,8 @@ def main():
     for i in range(4):
         print("Iteration", i + 1)
         # Get the best move
-        # best_moves = astar.get_best_moves(game)
-        best_moves = expectimax.get_best_moves(game)
+        best_moves = astar.get_best_moves(game)
+        # best_moves = expectimax.get_best_moves(game)
 
         if best_moves:
             for shape in game.get_current_shapes():

@@ -20,7 +20,8 @@ class AStar:
         empty_spaces = 0
         potential_clears = 0
         grid = state.grid.grid
-
+        
+        # Count empty spaces and potential row clears
         for row in range(state.grid.get_size()):
             row_filled = True
             for col in range(state.grid.get_size()):
@@ -29,7 +30,8 @@ class AStar:
                     row_filled = False
             if row_filled:
                 potential_clears += 1
-
+        
+        # Count potential column clears
         for col in range(state.grid.get_size()):
             col_filled = True
             for row in range(state.grid.get_size()):
@@ -38,7 +40,8 @@ class AStar:
                     break
             if col_filled:
                 potential_clears += 1
-
+        
+        # Count isolated empty spaces
         isolated_spaces = 0
         for row in range(state.grid.get_size()):
             for col in range(state.grid.get_size()):
@@ -55,8 +58,20 @@ class AStar:
                             break
                     if not has_neighbor:
                         isolated_spaces += 1
+        
+        base_score = -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
+        
+        # Add streak multiplier considerations
+        streak_bonus = 0
 
-        return -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
+        if state.current_streak_mult > 1 and not state.scored_this_round:
+            # Heavily reward potential clears to avoid losing the multiplier
+            streak_bonus = potential_clears * 25.0 * state.current_streak_mult
+        else:
+            # Still reward potential clears based on current multiplier
+            streak_bonus = potential_clears * 5.0 * state.current_streak_mult
+        
+        return base_score + streak_bonus
 
     def a_star_search(self, initial_state):  # Changed default to 3
         open_set = []
@@ -103,6 +118,8 @@ class AStar:
             game_model.get_grid(),
             game_model.get_score(),
             game_model.get_current_shapes(),
+            game_model.get_current_streak_mult(),
+            game_model.get_scored_this_round(),
         )
 
         final_state = self.a_star_search(initial_state)

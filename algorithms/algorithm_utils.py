@@ -1,6 +1,7 @@
 from copy import deepcopy
 from game_state import GameState
 
+
 def evaluate(state):
     """
     Evaluation function for a game state
@@ -47,13 +48,18 @@ def evaluate(state):
                 if not has_neighbor:
                     isolated_spaces += 1
 
-    # Calculate score: prefer fewer empty spaces, more potential clears, fewer isolated spaces
-    return (
-        state.score
-        + (-empty_spaces * 1.0)
-        + (potential_clears * 10.0)
-        + (-isolated_spaces * 2.0)
-    )
+    base_score = -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
+
+    streak_bonus = 0
+    if state.current_streak_mult > 1 and not state.scored_this_round:
+        # Heavily reward potential clears to avoid losing the multiplier
+        streak_bonus = potential_clears * 25.0 * state.current_streak_mult
+    else:
+        # Still reward potential clears based on current multiplier
+        streak_bonus = potential_clears * 5.0 * state.current_streak_mult
+
+    return base_score + streak_bonus
+
 
 def get_possible_moves(state):
     """
@@ -81,13 +87,19 @@ def get_possible_moves(state):
 
     return moves
 
+
 def apply_move(state, move):
     """
     Apply a move to the state and return the new state
     """
     block_idx, block, row, col = move
     new_state = GameState(
-        deepcopy(state.grid), state.score, state.remaining_blocks.copy()
+        deepcopy(state.grid),
+        state.score,
+        state.remaining_blocks.copy(),
+        state.blocks,
+        state.current_streak_mult,
+        state.scored_this_round,
     )
 
     # Place the block

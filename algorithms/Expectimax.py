@@ -1,6 +1,6 @@
 from game_state import GameState
 from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move, get_possible_blocks
-import random
+from random import Random
 
 
 class Expectimax:
@@ -9,8 +9,9 @@ class Expectimax:
     with consideration for probabilistic elements that occur every three moves
     """
 
-    def __init__(self, max_depth=3):
+    def __init__(self, seed, max_depth=3):
         self.max_depth = max_depth
+        self.rng = Random(seed)
 
     def expectimax(self, state, depth, moves_since_chance=0):
         # Terminal condition
@@ -141,7 +142,7 @@ class Expectimax:
 
                 chosen_shapes = []
                 for i in range(3):
-                    chosen_shapes.append(random.choice(possible_shapes))
+                    chosen_shapes.append(self.rng.choice(possible_shapes))
                 current_state = current_state.clone_with_new_shapes(chosen_shapes)
 
         return path if path else None

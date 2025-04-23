@@ -4,7 +4,7 @@ from algorithms.Expectimax import Expectimax
 from algorithms.MCTS import MCTS
 from util import print_curr_state
 
-def simulate_game(algorithm, seed=None, debug=False, iterations=5):
+def simulate_game(algorithm, seed=None, verbose=False, iterations=5):
     """
     Simulate a game using the specified algorithm
     """
@@ -12,35 +12,38 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
     game = GameModel(grid_size=5, seed=seed)
     game.start_game()
 
-    if debug:
+    if verbose:
         print("Initial game state:")
         print(f"Score: {game.get_score()}")
         print(f"Available blocks: {len(game.get_current_shapes())}")
         print_curr_state(game.get_grid().grid)
+        for shape in game.get_current_shapes():
+            print(shape)
+            print("\n")
 
     # Iterate through a few rounds
     for i in range(iterations):
-        if debug:
+        if verbose:
             print("Iteration", i + 1)
         # Get the best move
         best_moves = algorithm.get_best_moves(game)
 
         if best_moves:
-            if debug:
+            if verbose:
                 for shape in game.get_current_shapes():
-                    shape.visualize()
+                    print(shape)
                     print("\n")
 
             for move in best_moves:
                 block_idx, block, row, col = move
-                if debug:
+                if verbose:
                     print(f"Block: {block.shape}, Position: ({row}, {col}).")
 
                 # Apply the move
                 game.place_block(row, col, block)
-                if debug:
+                if verbose:
                     print(game.grid)
-            if debug:
+            if verbose:
                 print(f"\nAfter applying the best moves: {game.get_score()}")
         else:
             print("No valid moves found!")
@@ -50,21 +53,19 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
 
 def main():
     astar = AStar()
-    expectimax = Expectimax(max_depth=4)
+    expectimax = Expectimax(seed=42, max_depth=4)
     mcts = MCTS()
 
-    seeds = [None, 42, 123, 456, 789]
+    seeds = [42, 123, 456, 789, 2000]
     iterations = [3, 5, 10]
 
     for seed in seeds:
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")
-            simulate_game(astar, seed=seed, debug=False, iterations=iteration)
-            simulate_game(expectimax, seed=seed, debug=False, iterations=iteration)
-            simulate_game(mcts, seed=seed, debug=False, iterations=iteration)
+            simulate_game(astar, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(expectimax, seed=seed, verbose=False, iterations=iteration)
+            simulate_game(mcts, seed=seed, verbose=False, iterations=iteration)
             print("\n" + "="*50)
-
-
 
 if __name__ == "__main__":
     main()

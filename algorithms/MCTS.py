@@ -1,14 +1,14 @@
 from copy import deepcopy
 import math
-import random
+from random import Random
 from game_state import GameState
-from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move
+from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move, get_possible_blocks
 
 class MCTSNode:
     """
     Node class for Monte Carlo Tree Search
     """
-    def __init__(self, state, parent=None, prev_move=None, depth=0):
+    def __init__(self, state, parent=None, prev_move=None, depth=0, seed=42):
         self.state = state
         self.parent = parent
         self.prev_move = prev_move
@@ -17,6 +17,7 @@ class MCTSNode:
         self.value = 0
         self.untried_moves = get_possible_moves(state)
         self.depth = depth
+        self.rng = Random(seed)
         
     def uct_select_child(self, exploration_weight=1.0):
         """
@@ -45,7 +46,7 @@ class MCTSNode:
         if not self.untried_moves:
             return None
             
-        move = self.untried_moves.pop(random.randrange(len(self.untried_moves)))
+        move = self.untried_moves.pop(self.rng.randint(0, len(self.untried_moves) - 1))
         new_state = apply_move(deepcopy(self.state), move)
         child_node = MCTSNode(new_state, parent=self, prev_move=move, depth=self.depth + 1)
         self.children.append(child_node)
@@ -122,7 +123,7 @@ class MCTS:
                 moves = get_possible_moves(state)
                 if not moves:
                     break
-                move = random.choice(moves)
+                move = moves[node.rng.randint(0, len(moves) - 1)]
                 state = apply_move(state, move)
                 current_depth += 1
                 

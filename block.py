@@ -30,7 +30,8 @@ class Block:
         self.indices = [(x + shift_x, y + shift_y) for x, y in new_indices]
         self.rotation = (self.rotation + degrees) % 360
 
-    def visualize(self):
+    def __str__(self):
+        display = ""
         # Create an empty grid filled with dots
         grid_size = (
             max(x for x, y in self.indices) + 1,
@@ -45,4 +46,6 @@ class Block:
 
         # Print the grid
         for row in grid:
-            print(" ".join(row))
+            display += "".join(row) + "\n"
+        display = display.rstrip("\n")
+        return display

@@ -3,11 +3,6 @@ from game_state import GameState
 
 
 def evaluate(state):
-    """
-    Heuristic evaluation function for a game state.
-    Higher score indicates a better state.
-    Tries to approximate the game's scoring behavior.
-    """
     empty_spaces = 0
     potential_rows_cleared = 0
     potential_cols_cleared = 0
@@ -61,14 +56,9 @@ def evaluate(state):
     # empty space is good (placement opportunity)
     # isolated spaces are bad (hard to fill)
     placement_bonus = empty_spaces * 1.0
-    isolation_penalty = isolated_spaces * 3.0
+    isolation_penalty = isolated_spaces * 1.0
 
-    large_shape_penalty = 0
-    for shape in state.remaining_blocks:
-        size = len(shape.indices)
-        if size >= 5:
-            large_shape_penalty += size * 1.5
-    return placement_bonus + line_clear_bonus - isolation_penalty - large_shape_penalty
+    return placement_bonus + line_clear_bonus - isolation_penalty
 
 def get_possible_moves(state):
     """
@@ -127,6 +117,14 @@ def apply_move(state, move):
     # Place the block
     for dr, dc in block.indices:
         new_state.grid.set_tile(row + dr, col + dc, True)
+
+    # Check for full rows and columns
+    rows_cleared = new_state.grid.check_full_rows()
+    cols_cleared = new_state.grid.check_full_cols()
+    new_state.grid.clear_rows(rows_cleared)
+    new_state.grid.clear_cols(cols_cleared)
+    new_state.scored_this_round = True
+    new_state.current_streak_mult += 1
 
     # Remove used block
     new_state.remaining_blocks.pop(block_idx)

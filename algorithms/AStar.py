@@ -17,73 +17,61 @@ class AStar:
     """
 
     def heuristic(self, state):
-        """
-        Heuristic evaluation function for a game state.
-        Higher score indicates a better state.
-        Tries to approximate the game's scoring behavior.
-        """
         empty_spaces = 0
-        potential_rows_cleared = 0
-        potential_cols_cleared = 0
-        isolated_spaces = 0
+        potential_clears = 0
         grid = state.grid.grid
-        grid_size = state.grid.get_size()
-
-        # Analyze rows and columns for potential clears
-        for row in range(grid_size):
+        
+        # Count empty spaces and potential row clears
+        for row in range(state.grid.get_size()):
             row_filled = True
-            for col in range(grid_size):
+            for col in range(state.grid.get_size()):
                 if not grid[row][col].get_occupied():
                     empty_spaces += 1
                     row_filled = False
             if row_filled:
-                potential_rows_cleared += 1
-
-        for col in range(grid_size):
+                potential_clears += 1
+        
+        # Count potential column clears
+        for col in range(state.grid.get_size()):
             col_filled = True
-            for row in range(grid_size):
+            for row in range(state.grid.get_size()):
                 if not grid[row][col].get_occupied():
                     col_filled = False
                     break
             if col_filled:
-                potential_cols_cleared += 1
-
-        # Check for isolated empty cells (no orthogonal neighbors)
-        for row in range(grid_size):
-            for col in range(grid_size):
+                potential_clears += 1
+        
+        # Count isolated empty spaces
+        isolated_spaces = 0
+        for row in range(state.grid.get_size()):
+            for col in range(state.grid.get_size()):
                 if not grid[row][col].get_occupied():
                     has_neighbor = False
                     for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                         nr, nc = row + dr, col + dc
-                        if 0 <= nr < grid_size and 0 <= nc < grid_size:
-                            if grid[nr][nc].get_occupied():
-                                has_neighbor = True
-                                break
+                        if (
+                            0 <= nr < state.grid.get_size()
+                            and 0 <= nc < state.grid.get_size()
+                            and grid[nr][nc].get_occupied()
+                        ):
+                            has_neighbor = True
+                            break
                     if not has_neighbor:
                         isolated_spaces += 1
+        
+        base_score = -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
+        
+        # Add streak multiplier considerations
+        streak_bonus = 0
 
-        # Estimate scoring opportunity
-        lines_cleared = potential_rows_cleared + potential_cols_cleared
-        line_clear_bonus = lines_cleared * 10
-
-        if not state.scored_this_round and state.current_streak_mult > 1:
-            # Protect multiplier — reward more heavily
-            line_clear_bonus *= state.current_streak_mult * 2.5
+        if state.current_streak_mult > 1 and not state.scored_this_round:
+            # Heavily reward potential clears to avoid losing the multiplier
+            streak_bonus = potential_clears * 25.0 * state.current_streak_mult
         else:
-            line_clear_bonus *= state.current_streak_mult
-
-        # empty space is good (placement opportunity)
-        # isolated spaces are bad (hard to fill)
-        placement_bonus = empty_spaces * 1.0
-        isolation_penalty = isolated_spaces * 3.0
-
-        large_shape_penalty = 0
-        for shape in state.remaining_blocks:
-            size = len(shape.indices)
-            if size >= 5:
-                large_shape_penalty += size * 1.5
-
-        return placement_bonus + line_clear_bonus - isolation_penalty - large_shape_penalty
+            # Still reward potential clears based on current multiplier
+            streak_bonus = potential_clears * 5.0 * state.current_streak_mult
+        
+        return base_score + streak_bonus
 
     def a_star_search(self, initial_state):  # Changed default to 3
         open_set = []
@@ -118,6 +106,7 @@ class AStar:
                     if state_key not in closed_set:
                         heapq.heappush(open_set, new_state)
                         closed_set.add(state_key)
+
 
         # If we can't find a complete solution, return the best partial solution
         if open_set:

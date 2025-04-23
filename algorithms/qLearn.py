@@ -220,4 +220,4 @@ class QLearn:
         print(f"Search complete. Total states evaluated: {self.nodes_evaluated}")
         print(f"Final score: {final_score}, Best Q-value: {best_q_value}")
         
-        return final_score, best_path
+        return best_path

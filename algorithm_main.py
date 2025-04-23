@@ -25,6 +25,7 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
             print("Iteration", i + 1)
         # Get the best move
         best_moves = algorithm.get_best_moves(game)
+        print(best_moves)
 
         if best_moves:
             if debug:
@@ -53,6 +54,8 @@ def main():
     astar = AStar()
     expectimax = Expectimax()
     mcts = MCTS()
+    
+    qlearn = QLearn()
 
     seeds = [None, 42, 123, 456, 789]
     iterations = [3, 5, 10]
@@ -60,36 +63,30 @@ def main():
     for seed in seeds:
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")
-            simulate_game(astar, seed, debug=False, iterations=iteration)
-            simulate_game(expectimax, seed, debug=False, iterations=iteration)
-            simulate_game(mcts, seed, debug=False, iterations=iteration)
+            # simulate_game(astar, seed, debug=False, iterations=iteration)
+            # simulate_game(expectimax, seed, debug=False, iterations=iteration)
+            # simulate_game(mcts, seed, debug=False, iterations=iteration)
+            simulate_game(qlearn, seed,debug=False, iterations=iteration)
             print("\n" + "="*50)
 
 
 
-def q_star_learning():
+# def q_star_learning():
     
-    game = GameModel(grid_size=6, seed=42)
+#     game = GameModel(grid_size=6, seed=42)
     
-    game.start_game()
-    
-    
-    q_learn = QLearn(max_depth=10)
-    evaluation, moves = q_learn.get_best_moves(game)
-    
-    print("moves\n")
-    print(moves)
+#     game.start_game()
     
     
-    print('evaluation\n')
-    print(evaluation)
+#     q_learn = QLearn(max_depth=10)
+#     evaluation, moves = q_learn.get_best_moves(game)
     
     
-    print('game_score\n')
-    print(game.get_score())
+    
+   
     
     
     
 
 if __name__ == "__main__":
-    q_star_learning()
+    main()

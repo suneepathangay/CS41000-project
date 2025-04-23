@@ -153,7 +153,7 @@ class GameModel:
                 self.grid.set_tile(r, c, False)
 
         # Update score
-        self.calculate_score(len(block.indices), len(full_rows), len(full_cols))
+        self._calculate_score(len(block.indices), len(full_rows), len(full_cols))
 
         return True
 

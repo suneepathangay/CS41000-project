@@ -8,15 +8,15 @@ class MCTSNode:
     """
     Node class for Monte Carlo Tree Search
     """
-    def __init__(self, state, parent=None, move=None, depth=0):
+    def __init__(self, state, parent=None, prev_move=None, depth=0):
         self.state = state
         self.parent = parent
-        self.move = move  # Move that led to this state
+        self.prev_move = prev_move
         self.children = []
         self.visits = 0
         self.value = 0
         self.untried_moves = get_possible_moves(state)
-        self.depth = depth  # Track depth in the search tree
+        self.depth = depth
         
     def uct_select_child(self, exploration_weight=1.0):
         """
@@ -47,7 +47,7 @@ class MCTSNode:
             
         move = self.untried_moves.pop(random.randrange(len(self.untried_moves)))
         new_state = apply_move(deepcopy(self.state), move)
-        child_node = MCTSNode(new_state, parent=self, move=move, depth=self.depth + 1)
+        child_node = MCTSNode(new_state, parent=self, prev_move=move, depth=self.depth + 1)
         self.children.append(child_node)
         
         return child_node
@@ -81,7 +81,7 @@ class MCTSNode:
         sequence = []
         node = self
         while node.parent is not None:  # Stop at the root node
-            sequence.append(node.move)
+            sequence.append(node.prev_move)
             node = node.parent
             
         sequence.reverse()  # Reverse to get correct order
@@ -158,7 +158,7 @@ class MCTS:
             return []
             
         # Follow the most visited path up to depth 3
-        path = [best_child.move]
+        path = [best_child.prev_move]
         current = best_child
         
         while len(path) < 3 and current.children:
@@ -173,7 +173,7 @@ class MCTS:
             if not best_next:
                 break
                 
-            path.append(best_next.move)
+            path.append(best_next.prev_move)
             current = best_next
             
         return path

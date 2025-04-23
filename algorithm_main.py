@@ -7,7 +7,7 @@ from util import print_curr_state
 
 def main():
     # Create a new game model
-    game = GameModel(grid_size=6, seed=42)
+    game = GameModel(grid_size=6, seed=2000)
     astar = AStar()
     expectimax = Expectimax()
     mcts = MCTS()

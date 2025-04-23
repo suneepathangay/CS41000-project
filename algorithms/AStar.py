@@ -1,6 +1,6 @@
-from copy import deepcopy
 import heapq
 from game_state import GameState
+from algorithms.algorithm_utils import get_possible_moves, apply_move
 
 
 class AStar:
@@ -58,52 +58,6 @@ class AStar:
 
         return -empty_spaces * 1.0 - potential_clears * 10.0 - isolated_spaces * 2.0
 
-    """
-    get_possible_moves function
-    """
-
-    def get_possible_moves(self, state):
-        moves = []
-        grid = state.grid.grid
-
-        for block_idx, block in enumerate(state.remaining_blocks):
-            for row in range(state.grid.get_size()):
-                for col in range(state.grid.get_size()):
-                    can_place = True
-                    for dr, dc in block.indices:
-                        nr, nc = row + dr, col + dc
-                        if (
-                            nr >= state.grid.get_size()
-                            or nc >= state.grid.get_size()
-                            or grid[nr][nc].get_occupied()
-                        ):
-                            can_place = False
-                            break
-
-                    if can_place:
-                        moves.append((block_idx, block, row, col))
-
-        return moves
-
-    def apply_move(self, state, move):
-        block_idx, block, row, col = move
-        new_state = GameState(
-            deepcopy(state.grid), state.score, state.remaining_blocks.copy()
-        )
-
-        for dr, dc in block.indices:
-            new_state.grid.set_tile(row + dr, col + dc, True)
-
-        # Remove by index instead of by reference
-        new_state.remaining_blocks.pop(block_idx)
-
-        tiles_placed = len(block.indices)
-        rows_cleared = len(new_state.grid.check_full_rows())
-        cols_cleared = len(new_state.grid.check_full_cols())
-        new_state.score += tiles_placed + (rows_cleared + cols_cleared) * 10
-
-        return new_state
-
     def a_star_search(self, initial_state):  # Changed default to 3
         open_set = []
         closed_set = set()
@@ -121,10 +75,10 @@ class AStar:
             if not current_state.remaining_blocks:
                 return current_state
 
-            moves = self.get_possible_moves(current_state)
+            moves = get_possible_moves(current_state)
 
             for move in moves:
-                new_state = self.apply_move(current_state, move)
+                new_state = apply_move(current_state, move)
                 new_state.parent = current_state
                 new_state.last_move = move
                 new_state.g_cost = current_state.g_cost + 1

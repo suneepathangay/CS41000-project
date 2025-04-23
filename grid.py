@@ -23,7 +23,7 @@ class Grid:
 
         return grid
 
-    def get_tile(self, row, col):
+    def get_tile(self, row, col)->GridTile:
         return self.grid[row][col]
 
     def set_tile(self, row, col, tile_state):

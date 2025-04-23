@@ -5,12 +5,6 @@ from random import Random
 from tile import GridTile
 
 
-"""
-    The GameModel class represents the game model for a grid-based game.
-    It manages the game state, including the grid, score, and current shapes.
-"""
-
-
 class GameModel:
     """
     The GameModel class represents the game model for a grid-based game.
@@ -29,6 +23,13 @@ class GameModel:
     """
 
     def __init__(self, grid_size=8, seed=None) -> None:
+        """
+        Initialize a new GameModel instance.
+
+        Args:
+            grid_size (int, optional): Size of the game grid (default is 8).
+            seed (any, optional): Seed for the random number generator to ensure reproducibility.
+        """
         self.grid_size = grid_size
         self.grid = Grid(grid_size)
         self.score = 0
@@ -40,6 +41,10 @@ class GameModel:
         self.ongoing_streak_mult = 1
 
     def start_game(self):
+        """
+        Initialize or restart the game. Resets the grid, score, streak, and 
+        generates three new random shapes for placement.
+        """
         # Initialize the game state
         self.grid = Grid(self.grid_size)
         self.score = 0
@@ -53,6 +58,13 @@ class GameModel:
             self.current_shapes.append(shape)
 
     def check_game_over(self):
+        """
+        Check if the game is over. The game ends when none of the current shapes 
+        can be placed anywhere on the grid.
+
+        Returns:
+            bool: True if no valid placements are possible; False otherwise.
+        """
         if not self.current_shapes:
             return False  # No shapes to check
 
@@ -66,6 +78,16 @@ class GameModel:
         return True
 
     def _new_round(self):
+        """
+        Starts a new round by generating three new placeable shapes.
+        Resets the score multiplier if no points were scored in the last round.
+        
+        Returns:
+            bool: True if the game ends after this round; False otherwise.
+
+        Raises:
+            Exception: If new round is started before placing all current blocks.
+        """
         if self.current_shapes != []:
             raise Exception("You need to place the blocks before starting a new round")
 
@@ -89,15 +111,16 @@ class GameModel:
 
     def place_block(self, row, col, block: Block):
         """
-        Place a block on the grid and handle clearing and scoring.
+        Attempts to place a block on the grid, clears completed rows and columns,
+        updates the score, and proceeds to a new round if all shapes are used.
 
         Args:
-            row (int): Row index to place the block
-            col (int): Column index to place the block
-            block (Block): The block to place
+            row (int): Row index for the block's top-left position.
+            col (int): Column index for the block's top-left position.
+            block (Block): The block to be placed.
 
         Returns:
-            bool: True if placement was successful, False otherwise
+            bool: True if the block was successfully placed; False otherwise.
         """
         shape_index = -1
         for i, shape in enumerate(self.current_shapes):
@@ -144,6 +167,17 @@ class GameModel:
         return True
 
     def can_place_block(self, row, col, block: Block):
+        """
+        Check if a block can be legally placed on the grid at the given position.
+
+        Args:
+            row (int): Starting row index.
+            col (int): Starting column index.
+            block (Block): The block to check.
+
+        Returns:
+            bool: True if the block fits without overlapping or going out of bounds.
+        """
         block_indices = block.indices
 
         for i in block_indices:
@@ -161,10 +195,10 @@ class GameModel:
 
     def _check_full_rows(self):
         """
-        Check for completed rows (private method).
+        Check for fully occupied rows in the grid.
 
         Returns:
-            list: Indices of completed rows
+            list: List of row indices that are completely filled.
         """
         full_rows = []
 
@@ -185,10 +219,10 @@ class GameModel:
 
     def _check_full_cols(self):
         """
-        Check for completed columns (private method).
+        Check for fully occupied columns in the grid.
 
         Returns:
-            list: Indices of completed columns
+            list: List of column indices that are completely filled.
         """
         full_cols = []
 
@@ -208,8 +242,15 @@ class GameModel:
         return full_cols
 
     def _calculate_score(self, tiles_placed, rows_cleared, cols_cleared):
-        # Calculate the score based on the number of tiles occupied
-        # and the number of blocks placed
+        """
+        Calculate and update the score based on tiles placed and full lines cleared.
+        Applies a streak multiplier for consecutive clears.
+
+        Args:
+            tiles_placed (int): Number of tiles placed by the block.
+            rows_cleared (int): Number of full rows cleared.
+            cols_cleared (int): Number of full columns cleared.
+        """
         base_score = tiles_placed
         bonus = (rows_cleared + cols_cleared) * 10  # 10 points per cleared row/col
 
@@ -220,8 +261,12 @@ class GameModel:
         self.score += base_score + bonus
 
     def _get_random_shape(self) -> Block:
-        # Generate a random shape
-        # Return the shape
+        """
+        Select a random block shape from the available pool.
+
+        Returns:
+            Block: A randomly selected block shape.
+        """
 
         return self.blocks[self.rng.randint(0, len(self.blocks) - 1)]
 

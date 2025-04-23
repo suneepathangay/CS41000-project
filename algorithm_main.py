@@ -2,6 +2,7 @@ from game_model import GameModel
 from algorithms.AStar import AStar
 from algorithms.Expectimax import Expectimax
 from util import print_curr_state
+from algorithms.qstar import QStar
 
 
 def main():
@@ -44,5 +45,15 @@ def main():
             print("\nNo valid moves found!")
 
 
+def q_star_learning():
+    
+    game = GameModel(grid_size=6, seed=42)
+    
+    qstar = QStar(max_depth=2)
+    moves = qstar.get_best_moves(game)
+    
+    print(moves)
+    
+
 if __name__ == "__main__":
-    main()
+    q_star_learning()

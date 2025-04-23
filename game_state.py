@@ -1,8 +1,10 @@
+from grid import Grid
+
 """
 GameState class
 """
 class GameState:
-    def __init__(self, grid, score, remaining_blocks):
+    def __init__(self, grid:Grid, score, remaining_blocks):
         self.grid = grid
         self.score = score
         self.remaining_blocks = remaining_blocks
@@ -16,3 +18,5 @@ class GameState:
 
     def get_f_cost(self):
         return self.g_cost + self.h_cost
+    
+    

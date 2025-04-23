@@ -35,7 +35,7 @@ class GameModel:
             shape = self.get_random_shape()
             self.current_shapes.append(shape)
 
-    def get_grid(self):
+    def get_grid(self) -> Grid:
         return self.grid
 
     def get_score(self):

@@ -53,7 +53,7 @@ def q_star_learning():
     moves = qstar.get_best_moves(game)
     
     print("moves\n")
-    print(moves)
+    
     
 
 if __name__ == "__main__":

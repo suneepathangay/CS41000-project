@@ -3,7 +3,7 @@ from algorithms.AStar import AStar
 from algorithms.Expectimax import Expectimax
 from algorithms.MCTS import MCTS
 from util import print_curr_state
-from algorithms.qstar import QStar
+from algorithms.qLearn import QLearn
 
 def simulate_game(algorithm, seed=None, debug=False, iterations=5):
     """
@@ -71,10 +71,23 @@ def q_star_learning():
     
     game = GameModel(grid_size=6, seed=42)
     
-    qstar = QStar(max_depth=10)
-    moves = qstar.get_best_moves(game)
+    game.start_game()
+    
+    
+    q_learn = QLearn(max_depth=5)
+    evaluation, moves = q_learn.get_best_moves(game)
     
     print("moves\n")
+    print(moves)
+    
+    
+    print('evaluation\n')
+    print(evaluation)
+    
+    
+    print('game_score\n')
+    print(game.get_score())
+    
     
     
 

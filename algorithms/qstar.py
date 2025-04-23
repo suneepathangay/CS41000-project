@@ -68,7 +68,10 @@ class QStar:
         """
         Recursive depth-limited Q* lookahead
         """
+        
+        
         if depth == 0 or not state.remaining_blocks:
+
             return self.evaluate(state), []
 
         best_score = float('-inf')
@@ -93,11 +96,14 @@ class QStar:
         """
         Entry point to get the best move sequence from the current game state
         """
+        game_model.start_game()
+        
         initial_state = GameState(
             deepcopy(game_model.get_grid()),
             game_model.get_score(),
             deepcopy(game_model.get_current_shapes())
         )
+
 
         _, best_path = self.q_star_search(initial_state, self.max_depth)
         return best_path

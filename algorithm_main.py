@@ -49,9 +49,10 @@ def q_star_learning():
     
     game = GameModel(grid_size=6, seed=42)
     
-    qstar = QStar(max_depth=2)
+    qstar = QStar(max_depth=10)
     moves = qstar.get_best_moves(game)
     
+    print("moves\n")
     print(moves)
     
 

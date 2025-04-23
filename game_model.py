@@ -74,6 +74,15 @@ class GameModel:
     """
 
     def place_block(self, row, col, block: Block):
+        
+        ##ran out of shapes
+        if len(self.current_shapes)==0:
+            for i in range(3):
+                shape = self.get_random_shape()
+                self.current_shapes.append(shape)
+        
+        
+        
         shape_index = -1
         for i, shape in enumerate(self.current_shapes):
             if shape.shape == block.shape:
@@ -114,6 +123,12 @@ class GameModel:
 
         # Update score
         self.calculate_score(len(block.indices), len(full_rows), len(full_cols))
+        
+        
+        
+            
+            
+    
 
         return True
 

@@ -94,11 +94,8 @@ class GameModel:
         # Get three new shapes
         while len(self.current_shapes) < 3:
             shape = self._get_random_shape()
-            for i in range(self.grid_size):
-                for j in range(self.grid_size):
-                    if self.can_place_block(i, j, shape):
-                        self.current_shapes.append(shape)
-                        break
+            if self.can_be_placed(shape):
+                self.current_shapes.append(shape)
         if not self.scored_this_round:
             self.ongoing_streak_mult = 1
 
@@ -192,6 +189,22 @@ class GameModel:
             if tile.get_occupied():
                 return False
         return True
+
+    def can_be_placed(self, block:Block):
+        """
+        Check if a block can be placed anywhere on the grid.
+
+        Args:
+            block (Block): The block to check.
+
+        Returns:
+            bool: True if the block can be placed; False otherwise.
+        """
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                if self.can_place_block(row, col, block):
+                    return True
+        return False
 
     def _check_full_rows(self):
         """
@@ -291,3 +304,6 @@ class GameModel:
 
     def get_scored_this_round(self):
         return self.scored_this_round
+
+    def get_blocks(self):
+        return self.blocks

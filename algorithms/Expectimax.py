@@ -1,3 +1,4 @@
+from copy import deepcopy
 from game_state import GameState
 from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move
 
@@ -47,8 +48,9 @@ class Expectimax:
             game_model.get_grid(),
             game_model.get_score(),
             game_model.get_current_shapes(),
-            current_streak_mult=game_model.get_current_streak_mult(),
-            scored_this_round=game_model.get_scored_this_round(),
+            game_model.get_blocks(),
+            game_model.get_current_streak_mult(),
+            game_model.get_scored_this_round(),
         )
 
         _, best_move = self.expectimax(initial_state, self.max_depth)
@@ -66,6 +68,9 @@ class Expectimax:
             game_model.get_grid(),
             game_model.get_score(),
             game_model.get_current_shapes(),
+            game_model.get_blocks(),
+            game_model.get_current_streak_mult(),
+            game_model.get_scored_this_round(),
         )
 
         path = []

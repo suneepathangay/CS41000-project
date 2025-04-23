@@ -41,7 +41,7 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
                 # Apply the move
                 game.place_block(row, col, block)
                 if debug:
-                    print(game.grid.visualize())
+                    print(game.grid)
             if debug:
                 print(f"\nAfter applying the best moves: {game.get_score()}")
         else:
@@ -52,7 +52,7 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
 
 def main():
     astar = AStar()
-    expectimax = Expectimax()
+    expectimax = Expectimax(max_depth=3)
     mcts = MCTS()
     
     qlearn = QLearn()
@@ -63,10 +63,12 @@ def main():
     for seed in seeds:
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")
-            # simulate_game(astar, seed, debug=False, iterations=iteration)
-            # simulate_game(expectimax, seed, debug=False, iterations=iteration)
-            # simulate_game(mcts, seed, debug=False, iterations=iteration)
+
+            simulate_game(astar, seed=seed, debug=False, iterations=iteration)
+            simulate_game(expectimax, seed=seed, debug=False, iterations=iteration)
+            simulate_game(mcts, seed=seed, debug=False, iterations=iteration)
             simulate_game(qlearn, seed,debug=False, iterations=iteration)
+
             print("\n" + "="*50)
 
 

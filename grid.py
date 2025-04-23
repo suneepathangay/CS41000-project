@@ -56,7 +56,14 @@ class Grid:
             for row in range(self.grid_size):
                 self.set_tile(row, col, False)
 
-    def visualize(self):
+    def clone(self):
+        new_grid = Grid(self.grid_size)
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                new_grid.set_tile(row, col, self.get_tile(row, col).get_occupied())
+        return new_grid
+
+    def __str__(self):
         display = ""
         for row in range(self.grid_size):
             for col in range(self.grid_size):

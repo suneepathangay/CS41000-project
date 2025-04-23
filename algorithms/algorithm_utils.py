@@ -67,8 +67,14 @@ def get_possible_moves(state):
     """
     moves = []
     grid = state.grid.grid
+    if hasattr(state.remaining_blocks, '__iter__'):
+        # It's already iterable
+        blocks = list(state.remaining_blocks)
+    else:
+        # It's a single block, wrap it in a list
+        blocks = [state.remaining_blocks]
 
-    for block_idx, block in enumerate(state.remaining_blocks):
+    for block_idx, block in enumerate(blocks):
         for row in range(state.grid.get_size()):
             for col in range(state.grid.get_size()):
                 can_place = True
@@ -93,6 +99,12 @@ def apply_move(state, move):
     Apply a move to the state and return the new state
     """
     block_idx, block, row, col = move
+    if hasattr(state.remaining_blocks, '__iter__'):
+        # It's already iterable
+        blocks = list(state.remaining_blocks).copy()
+    else:
+        # It's a single block, wrap it in a list
+        blocks = [state.remaining_blocks].copy()
     new_state = GameState(
         deepcopy(state.grid),
         state.score,
@@ -116,3 +128,39 @@ def apply_move(state, move):
     new_state.score += tiles_placed + (rows_cleared + cols_cleared) * 10
 
     return new_state
+    
+def get_possible_blocks(grid, blocks):
+    """
+    Get all possible blocks that can be placed on the grid
+    """
+    possible_blocks = []
+    for block in blocks:
+        if _can_place_block(grid, block):
+            possible_blocks.append((block))
+    return possible_blocks
+                    
+    return possible_blocks
+
+def _can_place_block(grid, block) -> bool:
+    for row in range(grid.get_size()):
+        for col in range(grid.get_size()):
+            can_place = True
+            block_indices = block.indices
+            for i in block_indices:
+                # Check if block is out of bounds
+                if (
+                    row + i[0] < 0
+                    or row + i[0] >= grid.get_size()
+                    or col + i[1] < 0
+                    or col + i[1] >= grid.get_size()
+                ):
+                    can_place = False
+                    break
+                # Check if tile is already occupied
+                tile = grid.get_tile(row + i[0], col + i[1])
+                if tile.get_occupied():
+                    can_place = False
+                    break
+            if can_place:
+                return True
+    return False

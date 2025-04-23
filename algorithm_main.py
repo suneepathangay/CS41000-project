@@ -9,7 +9,7 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
     Simulate a game using the specified algorithm
     """
     print("\nSimulating game with algorithm:", algorithm.__class__.__name__)
-    game = GameModel(grid_size=6, seed=seed)
+    game = GameModel(grid_size=5, seed=seed)
     game.start_game()
 
     if debug:
@@ -50,12 +50,12 @@ def simulate_game(algorithm, seed=None, debug=False, iterations=5):
 
 def main():
     astar = AStar()
-    expectimax = Expectimax(max_depth=3)
+    expectimax = Expectimax(max_depth=4)
     mcts = MCTS()
 
     seeds = [None, 42, 123, 456, 789]
     iterations = [3, 5, 10]
-    # Simulate the game with different seeds
+
     for seed in seeds:
         for iteration in iterations:
             print(f"\nSimulating game with seed {seed} over {iteration} iterations:")

@@ -1,5 +1,10 @@
 from game_state import GameState
-from algorithms.algorithm_utils import evaluate, get_possible_moves, apply_move, get_possible_blocks
+from algorithms.algorithm_utils import (
+    evaluate,
+    get_possible_moves,
+    apply_move,
+    get_possible_blocks,
+)
 from random import Random
 
 
@@ -16,7 +21,9 @@ class Expectimax:
     def expectimax(self, state, depth, moves_since_chance=0):
         # Terminal condition
         if depth == 0 or not state.remaining_blocks:
-            return evaluate(state), None
+            # Add depth bonus to terminal evaluation
+            depth_bonus = (self.max_depth - depth) * 0.1  # Adjust multiplier as needed
+            return evaluate(state) + depth_bonus, None
 
         # Handle chance node
         if moves_since_chance == 2:
@@ -34,18 +41,31 @@ class Expectimax:
             new_state = apply_move(state, move)
 
             shallow_value = evaluate(new_state)
-            
-            if best_value > float("-inf") and shallow_value < best_value * 0.5 and depth < 2:
+
+            # Make pruning less aggressive for deeper searches
+            # The deeper we are, the more we're willing to explore
+            pruning_threshold = 0.3 - (depth * 0.1)
+            if (
+                best_value > float("-inf")
+                and shallow_value < best_value * pruning_threshold
+                and depth < 2
+            ):
                 continue
 
-            value, _ = self.expectimax(new_state, depth - 1, (moves_since_chance + 1) % 3)
+            # Pass remaining depth
+            value, _ = self.expectimax(
+                new_state, depth - 1, (moves_since_chance + 1) % 3
+            )
+
+            # Add depth progression bonus to prioritize moves that lead to deeper searches
+            depth_progression_bonus = 0.05 * (self.max_depth - depth)
+            value += depth_progression_bonus
 
             if value > best_value:
                 best_value = value
                 best_move = move
         return best_value, best_move
 
-    
     def _handle_chance_node(self, state, depth):
         """
         Handle chance nodes where new shapes are generated
@@ -53,34 +73,24 @@ class Expectimax:
         """
         # Get all possible shape combinations that could be generated
         possible_shape_combinations = get_possible_blocks(state.grid, state.blocks)
-        
+
         if not possible_shape_combinations:
             return evaluate(state), None
-            
+
         # Calculate expected value across all possible shape combinations
         total_value = 0
         # Assume uniform distribution for simplicity
         probability = 1.0 / len(possible_shape_combinations)
-        
+
         for shapes in possible_shape_combinations:
             # Create a new state with the generated shapes
-            new_state = self._create_state_with_new_shapes(state, shapes)
+            new_state = state.clone_with_new_shapes(shapes)
             # Reset moves_since_chance to 0 after a chance node
             value, _ = self.expectimax(new_state, depth - 1, 0)
             total_value += probability * value
-            
+
         # No move to return at a chance node, just the expected value
         return total_value, None
-    
-    def _create_state_with_new_shapes(self, state, shapes):
-        """
-        Create a new state with the given shapes
-        """
-        # Implementation would depend on the game's state representation
-        # For simplicity, this is a placeholder
-        # In a real implementation, this would create a new state with
-        # the given shapes added to the remaining blocks
-        return state.clone_with_new_shapes(shapes)
 
     def get_best_move(self, game_model):
         """
@@ -122,11 +132,13 @@ class Expectimax:
         moves_since_chance = 0
 
         while depth_remaining > 0 and current_state.remaining_blocks:
-            _, best_move = self.expectimax(current_state, depth_remaining, moves_since_chance)
+            _, best_move = self.expectimax(
+                current_state, depth_remaining, moves_since_chance
+            )
 
             if not best_move:
                 break  # No more valid moves
-            
+
             path.append(best_move)
             current_state = apply_move(current_state, best_move)
 
@@ -136,7 +148,9 @@ class Expectimax:
             # If this move *triggered* a chance event, we simulate it
             if moves_since_chance == 0:
                 # Apply chance node by picking the expected outcome (average of all)
-                possible_shapes = get_possible_blocks(current_state.grid, current_state.blocks)
+                possible_shapes = get_possible_blocks(
+                    current_state.grid, current_state.blocks
+                )
                 if not possible_shapes:
                     break  # No valid shapes, game over
 

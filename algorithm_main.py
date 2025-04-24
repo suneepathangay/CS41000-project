@@ -66,7 +66,7 @@ def main():
             simulate_game(astar, seed=seed, verbose=False, iterations=iteration)
             simulate_game(expectimax, seed=seed, verbose=False, iterations=iteration)
             simulate_game(mcts, seed=seed, verbose=False, iterations=iteration)
-            simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
+            # simulate_game(qlearn, seed=seed, verbose=False, iterations=iteration)
             print("\n" + "="*50)
 
 

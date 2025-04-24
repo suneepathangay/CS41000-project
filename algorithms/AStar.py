@@ -6,15 +6,12 @@ from algorithms.algorithm_utils import get_possible_moves, apply_move
 class AStar:
     """
     A* Search algorithm implementation for finding optimal block placements
+    with depth prioritization
     """
 
-    def __init__(self, max_depth=3):
+    def __init__(self, max_depth=3, depth_priority_weight=10.0):
         self.max_depth = max_depth
-
-    """
-    potential heurisitc that that measures compactness of the grid 
-    since it is better to clear the rows and cols 
-    """
+        self.depth_priority_weight = depth_priority_weight 
 
     def heuristic(self, state):
         empty_spaces = 0
@@ -71,17 +68,41 @@ class AStar:
             # Still reward potential clears based on current multiplier
             streak_bonus = potential_clears * 5.0 * state.current_streak_mult
         
-        return base_score + streak_bonus
+        # This rewards states that are deeper in the search tree
+        depth_bonus = -self.depth_priority_weight * state.g_cost
+        
+        return base_score + streak_bonus + depth_bonus
 
-    def a_star_search(self, initial_state):  # Changed default to 3
+    def a_star_search(self, initial_state):
+        # Modified to prioritize deeper states
+        class DepthPriorityState:
+            def __init__(self, state):
+                self.state = state
+                
+            def __lt__(self, other):
+                # First prioritize by depth (g_cost)
+                if self.state.g_cost > other.state.g_cost:
+                    return True
+                elif self.state.g_cost < other.state.g_cost:
+                    return False
+                # If depths are equal, use f_cost as normal
+                return self.state.get_f_cost() < other.state.get_f_cost()
+        
         open_set = []
         closed_set = set()
 
         initial_state.h_cost = self.heuristic(initial_state)
-        heapq.heappush(open_set, initial_state)
+        heapq.heappush(open_set, DepthPriorityState(initial_state))
+
+        best_depth_state = initial_state  # Track the best state at each depth
 
         while open_set:
-            current_state = heapq.heappop(open_set)
+            current_wrapper = heapq.heappop(open_set)
+            current_state = current_wrapper.state
+
+            # Update the best state we've seen so far if this is deeper
+            if current_state.g_cost > best_depth_state.g_cost:
+                best_depth_state = current_state
 
             # If we've reached our depth limit, return the current best state
             if current_state.g_cost >= self.max_depth:
@@ -104,15 +125,11 @@ class AStar:
 
                     state_key = str(new_state.grid.grid)
                     if state_key not in closed_set:
-                        heapq.heappush(open_set, new_state)
+                        heapq.heappush(open_set, DepthPriorityState(new_state))
                         closed_set.add(state_key)
 
-
-        # If we can't find a complete solution, return the best partial solution
-        if open_set:
-            best_partial = min(open_set, key=lambda x: x.get_f_cost())
-            return best_partial
-        return None
+        # If we can't find a complete solution, return the best deep state we found
+        return best_depth_state
 
     def get_best_moves(self, game_model):
         initial_state = GameState(
